@@ -1,0 +1,47 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html,
+  body,
+  #root {
+    height: 100%;
+  }
+
+  body {
+    @apply bg-ink-900 text-white font-sans antialiased;
+    /* Stop iOS from bouncing the whole page; the app scrolls its own panel. */
+    overscroll-behavior: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Numbers that change a lot (cash, units) look calmer with tabular figures. */
+  .tnum {
+    font-variant-numeric: tabular-nums;
+  }
+}
+
+@layer components {
+  /* Flat rounded card with a very subtle 1px light border. */
+  .card {
+    @apply rounded-card border border-white/[0.07] bg-ink-700 shadow-card;
+  }
+
+  .card-inset {
+    @apply rounded-2xl border border-white/[0.06] bg-ink-600;
+  }
+
+  .label-dim {
+    @apply text-[11px] font-semibold uppercase tracking-[0.12em] text-white/40;
+  }
+}
+
+/* Hide scrollbars on the horizontal strips (tab bars, tier chips). */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
