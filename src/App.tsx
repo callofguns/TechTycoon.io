@@ -1,5 +1,5 @@
-import { AnimatePresence } from 'framer-motion';
 import { TopBar } from './components/TopBar';
+import { Toast } from './components/Toast';
 import { DayProgress } from './components/DayProgress';
 import { BottomNav } from './components/BottomNav';
 import { HomeScreen } from './screens/HomeScreen';
@@ -23,16 +23,20 @@ export default function App() {
         <TopBar />
         <DayProgress />
 
+        {/*
+          Each screen is keyed, so switching tabs remounts it and its spring
+          entrance plays. (Screens are swapped directly rather than wrapped in
+          AnimatePresence, which can stall if a nested animation is mid-flight.)
+        */}
         <main className="no-scrollbar relative flex-1 overflow-y-auto overflow-x-hidden">
-          <AnimatePresence mode="wait" initial={false}>
-            {activeTab === 'home' && <HomeScreen key="home" />}
-            {activeTab === 'design' && <DesignScreen key="design" />}
-            {activeTab === 'market' && <MarketScreen key="market" />}
-            {activeTab === 'finance' && <FinanceScreen key="finance" />}
-            {activeTab === 'more' && <MoreScreen key="more" />}
-          </AnimatePresence>
+          {activeTab === 'home' && <HomeScreen key="home" />}
+          {activeTab === 'design' && <DesignScreen key="design" />}
+          {activeTab === 'market' && <MarketScreen key="market" />}
+          {activeTab === 'finance' && <FinanceScreen key="finance" />}
+          {activeTab === 'more' && <MoreScreen key="more" />}
         </main>
 
+        <Toast />
         <BottomNav />
       </div>
     </div>

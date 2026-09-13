@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { Cpu, DollarSign, Laptop, Lock, Monitor, Palette, Smartphone } from 'lucide-react';
 import { Screen } from '../components/Screen';
 import { HardwareStage } from './design/HardwareStage';
 import { BrandingStage } from './design/BrandingStage';
 import { PricingStage } from './design/PricingStage';
 import { useGameStore } from '../store/gameStore';
+import { useToastStore } from '../store/toastStore';
 
 type StageId = 'hardware' | 'branding' | 'pricing';
 
@@ -24,16 +25,11 @@ const PRODUCT_TYPES = [
 
 export function DesignScreen() {
   const [stage, setStage] = useState<StageId>('hardware');
-  const [toast, setToast] = useState<string | null>(null);
   const launchProduct = useGameStore((s) => s.launchProduct);
   const setTab = useGameStore((s) => s.setTab);
+  const showToast = useToastStore((s) => s.show);
 
   const stageIndex = STAGES.findIndex((s) => s.id === stage);
-
-  function showToast(message: string) {
-    setToast(message);
-    window.setTimeout(() => setToast(null), 2600);
-  }
 
   function handleLaunch() {
     const result = launchProduct();
@@ -129,20 +125,17 @@ export function DesignScreen() {
         })}
       </div>
 
-      {/* The stage itself */}
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={stage}
-          initial={{ opacity: 0, x: 18 }}
-          animate={{ opacity: 1, x: 0 }}
-          exit={{ opacity: 0, x: -18 }}
-          transition={{ type: 'spring', stiffness: 340, damping: 30 }}
-        >
-          {stage === 'hardware' && <HardwareStage />}
-          {stage === 'branding' && <BrandingStage />}
-          {stage === 'pricing' && <PricingStage onLaunch={handleLaunch} />}
-        </motion.div>
-      </AnimatePresence>
+      {/* The stage itself — keyed so each one springs in when selected */}
+      <motion.div
+        key={stage}
+        initial={{ opacity: 0, x: 18 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ type: 'spring', stiffness: 340, damping: 30 }}
+      >
+        {stage === 'hardware' && <HardwareStage />}
+        {stage === 'branding' && <BrandingStage />}
+        {stage === 'pricing' && <PricingStage onLaunch={handleLaunch} />}
+      </motion.div>
 
       {/* Move to the next stage */}
       {stage !== 'pricing' && (
@@ -157,21 +150,6 @@ export function DesignScreen() {
         </motion.button>
       )}
 
-      <AnimatePresence>
-        {toast && (
-          <motion.div
-            initial={{ opacity: 0, y: 20, scale: 0.95 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            exit={{ opacity: 0, y: 10, scale: 0.98 }}
-            transition={{ type: 'spring', stiffness: 400, damping: 28 }}
-            className="pointer-events-none fixed inset-x-0 bottom-24 z-50 mx-auto w-full max-w-[400px] px-6"
-          >
-            <div className="rounded-2xl border border-white/10 bg-ink-600/95 px-4 py-3 text-center text-[12.5px] font-medium text-white shadow-card backdrop-blur">
-              {toast}
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
     </Screen>
   );
 }

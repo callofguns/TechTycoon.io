@@ -136,7 +136,7 @@ function MarketRow({
 
 function Stat({ label, value }: { label: string; value: string }) {
   return (
-    <div>
+    <div className="min-w-0 flex-1">
       <div className="text-[9.5px] font-semibold uppercase tracking-wider text-white/30">{label}</div>
       <div className="tnum mt-0.5 text-[13px] font-bold text-white/85">{value}</div>
     </div>

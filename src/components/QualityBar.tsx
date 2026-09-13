@@ -12,8 +12,10 @@ interface Props {
  * The small vertical "how good is this" bar that sits on the right of every
  * stepper row, with the percentage underneath it.
  */
-export function QualityBar({ value, height = 28, showLabel = true }: Props) {
+export function QualityBar({ value, height = 34, showLabel = true }: Props) {
   const pct = Math.round(Math.min(100, Math.max(0, value)));
+  // Keep a sliver of colour even at very low values so the bar reads as a bar.
+  const fill = Math.max(pct, 8);
 
   return (
     <div className="flex w-[30px] shrink-0 flex-col items-center gap-1">
@@ -24,7 +26,7 @@ export function QualityBar({ value, height = 28, showLabel = true }: Props) {
         <motion.div
           className="w-full rounded-full bg-accent"
           initial={false}
-          animate={{ height: `${pct}%` }}
+          animate={{ height: `${fill}%` }}
           transition={{ type: 'spring', stiffness: 260, damping: 24 }}
         />
       </div>

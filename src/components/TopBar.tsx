@@ -67,7 +67,6 @@ export function TopBar() {
               whileTap={{ scale: 0.93 }}
               transition={{ type: 'spring', stiffness: 500, damping: 26 }}
               className="relative flex h-9 flex-1 items-center justify-center rounded-pill"
-              aria-label={option.label}
             >
               {isActive && (
                 <motion.div

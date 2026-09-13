@@ -13,8 +13,11 @@ export const BALANCE = {
   /** Cash the player starts with. */
   startingCash: 50_000,
 
-  /** How many phones the whole market could buy in one day, at best. */
-  marketSizePerDay: 4200,
+  /**
+   * How many phones the whole market could buy in one day, at best.
+   * Raise this to make every company sell more (and money arrive faster).
+   */
+  marketSizePerDay: 200,
 
   /**
    * Controls how quickly the market fills up. A bigger number means products
@@ -23,7 +26,7 @@ export const BALANCE = {
   marketSaturation: 3.2,
 
   /** How strongly quality pulls buyers in (higher = quality matters more). */
-  qualityExponent: 1.25,
+  qualityExponent: 1.15,
 
   /** How strongly price pulls buyers in (higher = price matters more). */
   priceExponent: 1.55,
@@ -48,7 +51,7 @@ export const BALANCE = {
   minimumToolingCost: 2_000,
 
   /** Fixed running costs per day (office, staff, servers). */
-  dailyOverhead: 250,
+  dailyOverhead: 400,
 
   /** Chance per day that a news event fires. */
   newsChancePerDay: 0.1,
@@ -118,8 +121,9 @@ export function fairPrice(quality: number): number {
 
 /** A sensible default asking price for a freshly designed phone. */
 export function suggestedPrice(quality: number, unitCost: number): number {
-  // Aim a bit under the "fair" price, but never below a healthy margin.
-  const target = Math.round(fairPrice(quality) * 0.92);
+  // Aim under the "fair" price so a fresh design starts out competitive,
+  // but never below a healthy margin over what it costs to build.
+  const target = Math.round(fairPrice(quality) * 0.86);
   return Math.max(Math.round(unitCost * 1.8), target);
 }
 
