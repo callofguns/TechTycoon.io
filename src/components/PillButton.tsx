@@ -5,7 +5,7 @@ interface Props {
   children: ReactNode;
   onClick?: () => void;
   disabled?: boolean;
-  variant?: 'primary' | 'ghost';
+  variant?: 'primary' | 'ghost' | 'danger';
   className?: string;
 }
 
@@ -20,12 +20,13 @@ export function PillButton({
   const base =
     'flex h-[52px] w-full items-center justify-center gap-2 rounded-pill text-[15px] font-semibold tracking-tight transition-colors';
 
-  const look =
-    variant === 'primary'
-      ? disabled
-        ? 'bg-white/[0.06] text-white/30'
-        : 'bg-accent text-white shadow-glow'
-      : 'border border-white/10 bg-white/[0.04] text-white/80';
+  const look = disabled
+    ? 'bg-white/[0.06] text-white/30'
+    : variant === 'primary'
+      ? 'bg-accent text-white shadow-glow'
+      : variant === 'danger'
+        ? 'bg-red-500 text-white shadow-[0_8px_30px_-8px_rgba(239,68,68,0.6)]'
+        : 'border border-white/10 bg-white/[0.04] text-white/80';
 
   return (
     <motion.button

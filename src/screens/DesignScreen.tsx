@@ -11,11 +11,38 @@ import { useToastStore } from '../store/toastStore';
 
 type StageId = 'hardware' | 'branding' | 'pricing' | 'production';
 
-const STAGES: { id: StageId; label: string; icon: typeof Cpu }[] = [
-  { id: 'hardware', label: 'Hardware', icon: Cpu },
-  { id: 'branding', label: 'Design', icon: Palette },
-  { id: 'pricing', label: 'Pricing', icon: DollarSign },
-  { id: 'production', label: 'Production', icon: Package },
+/** Each stage of the design flow gets its own color, so the four-step
+ * progress bar isn't just one repeated blue dot. */
+const STAGES: {
+  id: StageId;
+  label: string;
+  icon: typeof Cpu;
+  color: { dot: string; text: string; line: string };
+}[] = [
+  {
+    id: 'hardware',
+    label: 'Hardware',
+    icon: Cpu,
+    color: { dot: 'bg-sky-400', text: 'text-sky-300', line: 'bg-sky-400/60' },
+  },
+  {
+    id: 'branding',
+    label: 'Design',
+    icon: Palette,
+    color: { dot: 'bg-violet-400', text: 'text-violet-300', line: 'bg-violet-400/60' },
+  },
+  {
+    id: 'pricing',
+    label: 'Pricing',
+    icon: DollarSign,
+    color: { dot: 'bg-emerald-400', text: 'text-emerald-300', line: 'bg-emerald-400/60' },
+  },
+  {
+    id: 'production',
+    label: 'Production',
+    icon: Package,
+    color: { dot: 'bg-amber-400', text: 'text-amber-300', line: 'bg-amber-400/60' },
+  },
 ];
 
 /** Product lines. Only phones are playable in v1 — the rest are locked stubs. */
@@ -97,7 +124,7 @@ export function DesignScreen() {
                   {isActive && (
                     <motion.div
                       layoutId="stage-dot"
-                      className="absolute inset-0 rounded-full bg-accent shadow-glow"
+                      className={`absolute inset-0 rounded-full ${item.color.dot}`}
                       transition={{ type: 'spring', stiffness: 420, damping: 30 }}
                     />
                   )}
@@ -114,7 +141,7 @@ export function DesignScreen() {
                 </div>
                 <span
                   className={`text-[10.5px] font-semibold ${
-                    isActive ? 'text-accent-soft' : isAhead ? 'text-white/25' : 'text-white/45'
+                    isActive ? item.color.text : isAhead ? 'text-white/25' : 'text-white/45'
                   }`}
                 >
                   {item.label}
@@ -124,7 +151,7 @@ export function DesignScreen() {
               {index < STAGES.length - 1 && (
                 <div
                   className={`mb-5 h-[2px] w-4 rounded-full ${
-                    index < stageIndex ? 'bg-accent/60' : 'bg-white/[0.08]'
+                    index < stageIndex ? item.color.line : 'bg-white/[0.08]'
                   }`}
                 />
               )}

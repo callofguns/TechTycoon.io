@@ -16,6 +16,8 @@ interface Props {
   /** True when the next tier up exists but is still locked. */
   nextLocked?: boolean;
   onStep: (direction: 1 | -1) => void;
+  /** Tailwind bg-* class for this row's little identity dot + quality bar. */
+  color?: string;
 }
 
 /**
@@ -32,11 +34,15 @@ export function StepperRow({
   canIncrease,
   nextLocked = false,
   onStep,
+  color = 'bg-accent',
 }: Props) {
   return (
     <div className="flex items-center gap-2.5 py-1.5">
       <div className="w-[70px] shrink-0">
-        <div className="text-[13px] font-semibold leading-tight text-white/90">{label}</div>
+        <div className="flex items-center gap-1.5 text-[13px] font-semibold leading-tight text-white/90">
+          <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${color}`} />
+          {label}
+        </div>
         {blurb && <div className="mt-0.5 text-[10px] leading-tight text-white/35">{blurb}</div>}
       </div>
 
@@ -73,7 +79,7 @@ export function StepperRow({
         />
       </div>
 
-      <QualityBar value={quality} />
+      <QualityBar value={quality} color={color} />
     </div>
   );
 }

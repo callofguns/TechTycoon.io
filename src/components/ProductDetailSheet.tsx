@@ -1,10 +1,12 @@
 import { AnimatePresence, motion, useDragControls, type PanInfo } from 'framer-motion';
-import { X } from 'lucide-react';
+import { Trash2, X } from 'lucide-react';
 import { useGameStore, ownerName } from '../store/gameStore';
+import { rivalColor } from '../game/rivals';
 import { useProductDetailStore } from '../store/productDetailStore';
 import { Sparkline } from './Sparkline';
 import { QualityBar } from './QualityBar';
 import { COMPONENTS } from '../game/components';
+import { COMPONENT_COLORS } from '../lib/componentColors';
 import { dateForDay } from '../game/calendar';
 import { formatDate, money, count } from '../lib/format';
 import { profitPerUnit } from '../game/economy';
@@ -23,8 +25,11 @@ export function ProductDetailSheet() {
   const day = useGameStore((s) => s.day);
   const news = useGameStore((s) => s.news);
 
+  const discontinueProduct = useGameStore((s) => s.discontinueProduct);
+
   const product = products.find((p) => p.id === productId) ?? null;
   const isPlayer = product?.ownerId === 'player';
+  const soldOut = (product?.unitsInStock ?? 1) <= 0;
   const { costMult } = activeModifiers(news);
 
   // Only the handle + header can start a drag, so swiping inside the
@@ -84,7 +89,13 @@ export function ProductDetailSheet() {
                         SOLD OUT
                       </span>
                     )}
-                    <span className="text-[11.5px] text-white/40">
+                    <span className="flex items-center gap-1.5 text-[11.5px] text-white/40">
+                      <span
+                        className="h-1.5 w-1.5 shrink-0 rounded-full"
+                        style={{
+                          backgroundColor: isPlayer ? '#5b7fff' : rivalColor(product.ownerId),
+                        }}
+                      />
                       {ownerName(rivals, product.ownerId)}
                     </span>
                   </div>
@@ -141,7 +152,8 @@ export function ProductDetailSheet() {
                       className="flex items-center gap-3 border-b border-white/[0.05] py-2.5 last:border-0"
                     >
                       <div className="w-[76px] shrink-0">
-                        <div className="text-[12.5px] font-semibold leading-tight text-white/85">
+                        <div className="flex items-center gap-1.5 text-[12.5px] font-semibold leading-tight text-white/85">
+                          <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${COMPONENT_COLORS[def.id].dot}`} />
                           {def.label}
                         </div>
                         <div className="mt-0.5 text-[10px] leading-tight text-white/35">{def.blurb}</div>
@@ -152,12 +164,27 @@ export function ProductDetailSheet() {
                           {money(tier.cost)} / unit
                         </div>
                       </div>
-                      <QualityBar value={tier.quality} height={28} />
+                      <QualityBar value={tier.quality} height={28} color={COMPONENT_COLORS[def.id].bar} />
                     </div>
                   );
                 })}
               </div>
             </div>
+
+            {isPlayer && soldOut && (
+              <div className="mt-4 px-5">
+                <motion.button
+                  type="button"
+                  onClick={() => discontinueProduct(product.id)}
+                  whileTap={{ scale: 0.97 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 26 }}
+                  className="flex h-11 w-full items-center justify-center gap-2 rounded-pill border border-red-400/25 bg-red-400/10 text-[13px] font-semibold text-red-300 active:bg-red-400/20"
+                >
+                  <Trash2 size={15} strokeWidth={2.4} />
+                  Remove this phone
+                </motion.button>
+              </div>
+            )}
 
             {isPlayer === false && (
               <p className="mt-3 px-6 pb-1 text-center text-[11px] leading-snug text-white/25">

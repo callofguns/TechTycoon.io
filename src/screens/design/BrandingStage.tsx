@@ -3,6 +3,7 @@ import { DesignSummary } from '../../components/DesignSummary';
 import { SectionTitle } from '../../components/Screen';
 import { DESIGN_COMPONENT_IDS, getComponent, isTierUnlocked } from '../../game/components';
 import { money } from '../../lib/format';
+import { COMPONENT_COLORS } from '../../lib/componentColors';
 import { useGameStore } from '../../store/gameStore';
 
 /** Stage 2: name the phone and choose how it looks and feels. */
@@ -50,6 +51,7 @@ export function BrandingStage() {
               canIncrease={nextUnlocked}
               nextLocked={hasNext && !nextUnlocked}
               onStep={(direction) => stepDraftPart(id, direction)}
+              color={COMPONENT_COLORS[id].dot}
             />
           );
         })}

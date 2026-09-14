@@ -5,6 +5,7 @@ import { Sparkline } from '../components/Sparkline';
 import { PriceTierBar } from '../components/PriceTierBar';
 import { count, money } from '../lib/format';
 import { priceTierShares } from '../game/economy';
+import { rivalColor } from '../game/rivals';
 import { ownerName, unitsToday, useGameStore } from '../store/gameStore';
 import { useProductDetailStore } from '../store/productDetailStore';
 import type { Product } from '../types';
@@ -86,6 +87,7 @@ function MarketRow({
   const isPlayer = product.ownerId === 'player';
   const soldOut = isPlayer && product.unitsInStock <= 0;
   const openDetail = useProductDetailStore((s) => s.open);
+  const tint = isPlayer ? '#5b7fff' : rivalColor(product.ownerId);
 
   return (
     <motion.div
@@ -110,15 +112,13 @@ function MarketRow({
               </span>
             )}
           </div>
-          <div className="mt-0.5 truncate text-[11px] text-white/35">{owner}</div>
+          <div className="mt-0.5 flex items-center gap-1.5">
+            <span className="h-1.5 w-1.5 shrink-0 rounded-full" style={{ backgroundColor: tint }} />
+            <span className="truncate text-[11px] text-white/35">{owner}</span>
+          </div>
         </div>
 
-        <Sparkline
-          history={product.history}
-          metric="units"
-          className="h-7 w-[70px] shrink-0"
-          color={isPlayer ? '#5b7fff' : '#7a7a8c'}
-        />
+        <Sparkline history={product.history} metric="units" className="h-7 w-[70px] shrink-0" color={tint} />
       </div>
 
       <div className="mt-2.5 flex items-center justify-between border-t border-white/[0.06] pt-2.5">

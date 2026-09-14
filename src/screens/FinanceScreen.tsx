@@ -78,7 +78,7 @@ export function FinanceScreen() {
       <SectionTitle>Savings</SectionTitle>
       <div className="card px-4 py-4">
         <div className="flex items-center gap-3">
-          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-accent/10 text-accent">
+          <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-400/10 text-emerald-400">
             <PiggyBank size={19} />
           </div>
           <div className="min-w-0 flex-1">

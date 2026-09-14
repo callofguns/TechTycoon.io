@@ -3,6 +3,7 @@ import { DesignSummary } from '../../components/DesignSummary';
 import { SectionTitle } from '../../components/Screen';
 import { HARDWARE_COMPONENT_IDS, getComponent, isTierUnlocked } from '../../game/components';
 import { money } from '../../lib/format';
+import { COMPONENT_COLORS } from '../../lib/componentColors';
 import { useGameStore } from '../../store/gameStore';
 
 /** Stage 1: pick the internals. */
@@ -36,6 +37,7 @@ export function HardwareStage() {
               canIncrease={nextUnlocked}
               nextLocked={hasNext && !nextUnlocked}
               onStep={(direction) => stepDraftPart(id, direction)}
+              color={COMPONENT_COLORS[id].dot}
             />
           );
         })}

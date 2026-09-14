@@ -6,13 +6,15 @@ interface Props {
   /** Height of the bar in pixels. */
   height?: number;
   showLabel?: boolean;
+  /** Tailwind bg-* class for the fill. Defaults to the app accent. */
+  color?: string;
 }
 
 /**
  * The small vertical "how good is this" bar that sits on the right of every
  * stepper row, with the percentage underneath it.
  */
-export function QualityBar({ value, height = 34, showLabel = true }: Props) {
+export function QualityBar({ value, height = 34, showLabel = true, color = 'bg-accent' }: Props) {
   const pct = Math.round(Math.min(100, Math.max(0, value)));
   // Keep a sliver of colour even at very low values so the bar reads as a bar.
   const fill = Math.max(pct, 8);
@@ -24,7 +26,7 @@ export function QualityBar({ value, height = 34, showLabel = true }: Props) {
         style={{ height }}
       >
         <motion.div
-          className="w-full rounded-full bg-accent"
+          className={`w-full rounded-full ${color}`}
           initial={false}
           animate={{ height: `${fill}%` }}
           transition={{ type: 'spring', stiffness: 260, damping: 24 }}

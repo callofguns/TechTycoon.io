@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Minus, Plus } from 'lucide-react';
+import { Minus, Plus, Trash2 } from 'lucide-react';
 import { Sparkline } from './Sparkline';
 import { AnimatedNumber } from './AnimatedNumber';
 import { money, count } from '../lib/format';
@@ -14,6 +14,7 @@ export function ProductCard({ product }: { product: Product }) {
   const news = useGameStore((s) => s.news);
   const day = useGameStore((s) => s.day);
   const setProductPrice = useGameStore((s) => s.setProductPrice);
+  const discontinueProduct = useGameStore((s) => s.discontinueProduct);
   const openDetail = useProductDetailStore((s) => s.open);
 
   const { costMult } = activeModifiers(news);
@@ -67,23 +68,39 @@ export function ProductCard({ product }: { product: Product }) {
       </div>
 
       <div className="mt-1 flex items-center justify-between gap-2 border-t border-white/[0.06] px-3 py-2.5">
-        <div className="flex items-center gap-1.5" onClick={(event) => event.stopPropagation()}>
-          <PriceNudge icon="minus" onPress={() => setProductPrice(product.id, product.price - 10)} />
-          <div className="min-w-[64px] text-center">
-            <div className="tnum text-[15px] font-bold leading-none text-white">
-              {money(product.price)}
+        {soldOut ? (
+          <motion.button
+            type="button"
+            onClick={(event) => {
+              event.stopPropagation();
+              discontinueProduct(product.id);
+            }}
+            whileTap={{ scale: 0.96 }}
+            transition={{ type: 'spring', stiffness: 500, damping: 26 }}
+            className="flex h-10 items-center gap-1.5 rounded-pill border border-red-400/25 bg-red-400/10 px-3.5 text-[12px] font-semibold text-red-300 active:bg-red-400/20"
+          >
+            <Trash2 size={14} strokeWidth={2.4} />
+            Remove
+          </motion.button>
+        ) : (
+          <div className="flex items-center gap-1.5" onClick={(event) => event.stopPropagation()}>
+            <PriceNudge icon="minus" onPress={() => setProductPrice(product.id, product.price - 10)} />
+            <div className="min-w-[64px] text-center">
+              <div className="tnum text-[15px] font-bold leading-none text-white">
+                {money(product.price)}
+              </div>
+              <div
+                className={`tnum mt-0.5 text-[10px] font-semibold ${
+                  margin > 0 ? 'text-emerald-400/80' : 'text-red-400/80'
+                }`}
+              >
+                {margin > 0 ? '+' : ''}
+                {money(margin)}/unit
+              </div>
             </div>
-            <div
-              className={`tnum mt-0.5 text-[10px] font-semibold ${
-                margin > 0 ? 'text-emerald-400/80' : 'text-red-400/80'
-              }`}
-            >
-              {margin > 0 ? '+' : ''}
-              {money(margin)}/unit
-            </div>
+            <PriceNudge icon="plus" onPress={() => setProductPrice(product.id, product.price + 10)} />
           </div>
-          <PriceNudge icon="plus" onPress={() => setProductPrice(product.id, product.price + 10)} />
-        </div>
+        )}
 
         <div className="text-right">
           <div className="label-dim">Revenue today</div>

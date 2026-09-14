@@ -14,6 +14,20 @@ export const RIVALS: Rival[] = [
   { id: 'vertex', name: 'Vertex Devices', generation: 1 },
 ];
 
+/**
+ * A stable color per rival (hex, for the Sparkline's `color` prop, which
+ * draws to an SVG rather than using Tailwind classes), so the market screen
+ * doesn't read as one gray blur of competitors.
+ */
+const RIVAL_COLORS: Record<string, string> = {
+  nimbus: '#fb923c', // orange-400
+  vertex: '#22d3ee', // cyan-400
+};
+
+export function rivalColor(ownerId: string): string {
+  return RIVAL_COLORS[ownerId] ?? '#7a7a8c';
+}
+
 /** How many days between rival product refreshes. */
 const REFRESH_INTERVAL_DAYS = 55;
 

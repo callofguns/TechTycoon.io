@@ -71,7 +71,7 @@ export function MoreScreen() {
 
       <SectionTitle
         right={
-          <span className="flex items-center gap-1 text-[11px] font-semibold text-accent-soft">
+          <span className="flex items-center gap-1 text-[11px] font-semibold text-cyan-400">
             <FlaskConical size={12} strokeWidth={2.4} />
             {count(researchPoints)} research
           </span>
@@ -81,7 +81,7 @@ export function MoreScreen() {
       </SectionTitle>
       {nextUnlocks.length === 0 ? (
         <div className="card flex items-center gap-3 px-4 py-3.5">
-          <Unlock size={16} className="shrink-0 text-accent" />
+          <Unlock size={16} className="shrink-0 text-emerald-400" />
           <p className="text-[12.5px] text-white/50">Every part is fully upgraded. Nice work.</p>
         </div>
       ) : (
@@ -110,7 +110,7 @@ export function MoreScreen() {
                         </div>
                         <div
                           className={`tnum flex items-center justify-end gap-0.5 text-[10.5px] font-semibold ${
-                            researchPoints >= cost.research ? 'text-white/40' : 'text-red-400/80'
+                            researchPoints >= cost.research ? 'text-cyan-400/70' : 'text-red-400/80'
                           }`}
                         >
                           <FlaskConical size={9} strokeWidth={2.6} />
@@ -139,7 +139,7 @@ export function MoreScreen() {
       <div className="card px-4 py-3">
         {COMING_LATER.map((item) => (
           <div key={item} className="flex items-center gap-2 py-1.5">
-            <Sparkles size={13} className="shrink-0 text-white/20" />
+            <Sparkles size={13} className="shrink-0 text-violet-400/50" />
             <span className="text-[12.5px] text-white/35">{item}</span>
             <span className="ml-auto rounded-pill bg-white/[0.05] px-2 py-0.5 text-[9.5px] font-bold text-white/30">
               SOON
@@ -155,7 +155,7 @@ export function MoreScreen() {
           with {money(BALANCE.startingCash)} and cannot be undone.
         </p>
         <PillButton
-          variant={confirmingReset ? 'primary' : 'ghost'}
+          variant={confirmingReset ? 'danger' : 'ghost'}
           onClick={() => {
             if (!confirmingReset) {
               setConfirmingReset(true);

@@ -54,7 +54,7 @@ export function TopBar() {
               cash < 0 ? 'text-red-400' : 'text-white'
             }`}
           />
-          <div className="mt-0.5 flex items-center justify-end gap-1 text-accent-soft/70">
+          <div className="mt-0.5 flex items-center justify-end gap-1 text-cyan-400/80">
             <FlaskConical size={10} strokeWidth={2.6} />
             <AnimatedNumber value={researchPoints} format={count} className="tnum text-[11px] font-semibold" />
           </div>

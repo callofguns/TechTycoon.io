@@ -9,6 +9,13 @@ interface Props {
   currentPrice: number;
 }
 
+/** A distinct color per price bracket instead of every active segment being the same blue. */
+const TIER_COLORS: Record<PriceTierId, { bg: string; text: string }> = {
+  budget: { bg: 'bg-emerald-400', text: 'text-emerald-300' },
+  mid: { bg: 'bg-accent', text: 'text-accent-soft' },
+  premium: { bg: 'bg-violet-400', text: 'text-violet-300' },
+};
+
 /**
  * Three-segment bar showing how the market splits between Budget, Mid-range
  * and Premium phones. The segment your price lands in is highlighted.
@@ -30,7 +37,7 @@ export function PriceTierBar({ shares, currentPrice }: Props) {
               animate={{ flexGrow: Math.max(share, 8) }}
               transition={{ type: 'spring', stiffness: 260, damping: 28 }}
               className={`flex min-w-0 items-center justify-center rounded-lg ${
-                isActive ? 'bg-accent' : 'bg-white/[0.07]'
+                isActive ? TIER_COLORS[tier.id].bg : 'bg-white/[0.07]'
               }`}
             >
               <span
@@ -56,7 +63,7 @@ export function PriceTierBar({ shares, currentPrice }: Props) {
           return (
             <div key={tier.id} className="text-center">
               <div
-                className={`text-[11px] font-semibold ${isActive ? 'text-accent-soft' : 'text-white/40'}`}
+                className={`text-[11px] font-semibold ${isActive ? TIER_COLORS[tier.id].text : 'text-white/40'}`}
               >
                 {tier.label}
               </div>
