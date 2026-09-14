@@ -8,7 +8,7 @@ import { useGameStore } from '../../store/gameStore';
 /** Stage 1: pick the internals. */
 export function HardwareStage() {
   const draft = useGameStore((s) => s.draft);
-  const lifetimeRevenue = useGameStore((s) => s.lifetimeRevenue);
+  const unlockedTierIndex = useGameStore((s) => s.unlockedTierIndex);
   const stepDraftPart = useGameStore((s) => s.stepDraftPart);
 
   return (
@@ -22,7 +22,7 @@ export function HardwareStage() {
           const index = draft.parts[id];
           const tier = def.tiers[index];
           const hasNext = index < def.tiers.length - 1;
-          const nextUnlocked = hasNext && isTierUnlocked(id, index + 1, lifetimeRevenue);
+          const nextUnlocked = hasNext && isTierUnlocked(id, index + 1, unlockedTierIndex);
 
           return (
             <StepperRow
@@ -42,8 +42,8 @@ export function HardwareStage() {
       </div>
 
       <p className="px-1 text-[11.5px] leading-snug text-white/30">
-        Better parts raise quality but cost more to build. Locked tiers unlock as your lifetime
-        revenue grows.
+        Better parts raise quality but cost more to build. Locked tiers are bought with cash and
+        research points on the More tab.
       </p>
     </div>
   );

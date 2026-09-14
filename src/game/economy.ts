@@ -67,6 +67,9 @@ export const BALANCE = {
   /** Fixed running costs per day (office, staff, servers). */
   dailyOverhead: 400,
 
+  /** Research points your R&D team generates every day, spent on part unlocks. */
+  researchPerDay: 6,
+
   /** Savings account yearly rate, compounded daily on the Finance screen. */
   savingsApy: 0.04,
 

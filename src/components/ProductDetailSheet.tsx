@@ -1,4 +1,4 @@
-import { AnimatePresence, motion } from 'framer-motion';
+import { AnimatePresence, motion, useDragControls, type PanInfo } from 'framer-motion';
 import { X } from 'lucide-react';
 import { useGameStore, ownerName } from '../store/gameStore';
 import { useProductDetailStore } from '../store/productDetailStore';
@@ -27,6 +27,17 @@ export function ProductDetailSheet() {
   const isPlayer = product?.ownerId === 'player';
   const { costMult } = activeModifiers(news);
 
+  // Only the handle + header can start a drag, so swiping inside the
+  // scrollable stats/component list below still scrolls instead of dragging
+  // the whole sheet around.
+  const dragControls = useDragControls();
+
+  function handleDragEnd(_event: unknown, info: PanInfo) {
+    // A firm downward flick or dragging it more than a third of the way
+    // closed both count as "let go of this".
+    if (info.offset.y > 140 || info.velocity.y > 700) close();
+  }
+
   return (
     <AnimatePresence>
       {product && (
@@ -43,39 +54,54 @@ export function ProductDetailSheet() {
             animate={{ y: 0 }}
             exit={{ y: '100%' }}
             transition={{ type: 'spring', stiffness: 340, damping: 34 }}
+            drag="y"
+            dragControls={dragControls}
+            dragListener={false}
+            dragConstraints={{ top: 0 }}
+            dragElastic={{ top: 0, bottom: 1 }}
+            onDragEnd={handleDragEnd}
             onClick={(event) => event.stopPropagation()}
             className="no-scrollbar max-h-[86%] w-full overflow-y-auto overscroll-contain rounded-t-[28px] border-t border-white/10 bg-ink-800 pb-[calc(env(safe-area-inset-bottom)+20px)]"
           >
-            <div className="mx-auto mt-2.5 h-1 w-10 rounded-pill bg-white/15" />
+            {/* Swipe down from here to dismiss — the stats/component list below stays scrollable. */}
+            <div
+              onPointerDown={(event) => dragControls.start(event)}
+              className="cursor-grab touch-none pb-1 pt-2.5 active:cursor-grabbing"
+            >
+              <div className="mx-auto h-1 w-10 rounded-pill bg-white/15" />
 
-            <div className="flex items-start justify-between gap-3 px-5 pt-3">
-              <div className="min-w-0">
-                <h2 className="truncate text-[19px] font-bold leading-tight text-white">
-                  {product.name}
-                </h2>
-                <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
-                  <span className="rounded-pill bg-accent/15 px-2 py-0.5 text-[10px] font-bold text-accent-soft">
-                    Q{product.quality}
-                  </span>
-                  {product.unitsInStock <= 0 && (
-                    <span className="rounded-pill bg-red-400/15 px-2 py-0.5 text-[10px] font-bold text-red-300">
-                      SOLD OUT
+              <div className="flex items-start justify-between gap-3 px-5 pt-2.5">
+                <div className="min-w-0">
+                  <h2 className="truncate text-[19px] font-bold leading-tight text-white">
+                    {product.name}
+                  </h2>
+                  <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+                    <span className="rounded-pill bg-accent/15 px-2 py-0.5 text-[10px] font-bold text-accent-soft">
+                      Q{product.quality}
                     </span>
-                  )}
-                  <span className="text-[11.5px] text-white/40">{ownerName(rivals, product.ownerId)}</span>
+                    {product.unitsInStock <= 0 && (
+                      <span className="rounded-pill bg-red-400/15 px-2 py-0.5 text-[10px] font-bold text-red-300">
+                        SOLD OUT
+                      </span>
+                    )}
+                    <span className="text-[11.5px] text-white/40">
+                      {ownerName(rivals, product.ownerId)}
+                    </span>
+                  </div>
                 </div>
-              </div>
 
-              <motion.button
-                type="button"
-                aria-label="Close"
-                onClick={close}
-                whileTap={{ scale: 0.88 }}
-                transition={{ type: 'spring', stiffness: 500, damping: 24 }}
-                className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/[0.08] bg-ink-600 text-white/60 active:bg-ink-500"
-              >
-                <X size={16} strokeWidth={2.4} />
-              </motion.button>
+                <motion.button
+                  type="button"
+                  aria-label="Close"
+                  onClick={close}
+                  onPointerDown={(event) => event.stopPropagation()}
+                  whileTap={{ scale: 0.88 }}
+                  transition={{ type: 'spring', stiffness: 500, damping: 24 }}
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-white/[0.08] bg-ink-600 text-white/60 active:bg-ink-500"
+                >
+                  <X size={16} strokeWidth={2.4} />
+                </motion.button>
+              </div>
             </div>
 
             <div className="mt-3 px-5">

@@ -12,7 +12,7 @@ import {
 } from '../game/economy';
 import { activeModifiers, historicalEventsForDay } from '../game/news';
 import { RIVALS, createInitialRivalProducts, runRivalTurn } from '../game/rivals';
-import { defaultParts, getComponent, isTierUnlocked } from '../game/components';
+import { defaultParts, defaultUnlockedTierIndex, getComponent, isTierUnlocked } from '../game/components';
 import type {
   ComponentId,
   NewsEvent,
@@ -46,8 +46,12 @@ interface GameState {
   dayProgressMs: number;
   cash: number;
   savings: number;
-  /** Total money ever taken in by the player. Drives component unlocks. */
+  /** Total money ever taken in by the player. Just a stat now — doesn't gate anything. */
   lifetimeRevenue: number;
+  /** Spent alongside cash to unlock better component tiers. Trickles in every day. */
+  researchPoints: number;
+  /** Highest tier index bought for each component so far — see isTierUnlocked. */
+  unlockedTierIndex: Record<ComponentId, number>;
   speed: Speed;
   products: Product[];
   rivals: Rival[];
@@ -75,6 +79,8 @@ interface GameState {
 
   setProductPrice: (productId: string, price: number) => void;
   discontinueProduct: (productId: string) => void;
+
+  buyUnlock: (componentId: ComponentId) => { ok: boolean; message: string };
 
   deposit: (amount: number) => void;
   withdraw: (amount: number) => void;
@@ -105,6 +111,8 @@ function initialState() {
     cash: BALANCE.startingCash,
     savings: 0,
     lifetimeRevenue: 0,
+    researchPoints: 0,
+    unlockedTierIndex: defaultUnlockedTierIndex(),
     speed: 1 as Speed,
     products: createInitialRivalProducts(),
     rivals: RIVALS.map((r) => ({ ...r })),
@@ -225,6 +233,7 @@ export const useGameStore = create<GameState>()(
             cash,
             savings,
             lifetimeRevenue: state.lifetimeRevenue + playerRevenue,
+            researchPoints: state.researchPoints + BALANCE.researchPerDay,
             ledger: [...state.ledger, ledgerEntry].slice(-60),
           };
         }),
@@ -260,7 +269,7 @@ export const useGameStore = create<GameState>()(
           const next = clamp(current + direction, 0, def.tiers.length - 1);
 
           // Locked tiers can't be selected yet.
-          if (next !== current && !isTierUnlocked(componentId, next, state.lifetimeRevenue)) {
+          if (next !== current && !isTierUnlocked(componentId, next, state.unlockedTierIndex)) {
             return state;
           }
 
@@ -368,6 +377,39 @@ export const useGameStore = create<GameState>()(
 
       discontinueProduct: (productId) =>
         set((state) => ({ products: state.products.filter((p) => p.id !== productId) })),
+
+      /** Spends cash + research to unlock the next tier up for one component. */
+      buyUnlock: (componentId) => {
+        const state = get();
+        const def = getComponent(componentId);
+        const currentIndex = state.unlockedTierIndex[componentId] ?? 0;
+        const nextIndex = currentIndex + 1;
+        const tier = def.tiers[nextIndex];
+
+        if (!tier) {
+          return { ok: false, message: `${def.label} is already fully upgraded.` };
+        }
+
+        const cost = tier.unlockCost;
+        if (cost) {
+          const missing: string[] = [];
+          if (state.cash < cost.cash) missing.push(`$${(cost.cash - state.cash).toLocaleString()}`);
+          if (state.researchPoints < cost.research) {
+            missing.push(`${Math.ceil(cost.research - state.researchPoints).toLocaleString()} research`);
+          }
+          if (missing.length > 0) {
+            return { ok: false, message: `Need ${missing.join(' and ')} more to unlock ${tier.name}.` };
+          }
+        }
+
+        set({
+          cash: state.cash - (cost?.cash ?? 0),
+          researchPoints: state.researchPoints - (cost?.research ?? 0),
+          unlockedTierIndex: { ...state.unlockedTierIndex, [componentId]: nextIndex },
+        });
+
+        return { ok: true, message: `${tier.name} unlocked for ${def.label}.` };
+      },
 
       deposit: (amount) =>
         set((state) => {

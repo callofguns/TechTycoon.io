@@ -6,6 +6,12 @@
 /** The five parts that make up a phone. */
 export type ComponentId = 'cpu' | 'screen' | 'battery' | 'camera' | 'build';
 
+/** What it costs to research and unlock a component tier. */
+export interface UnlockCost {
+  cash: number;
+  research: number;
+}
+
 /** One option for a component, e.g. the "Flagship" CPU. */
 export interface ComponentTier {
   name: string;
@@ -14,10 +20,10 @@ export interface ComponentTier {
   /** How good this part is, 0-100. Feeds the product's overall quality score. */
   quality: number;
   /**
-   * Lifetime revenue (in dollars) the player must have earned before this tier
-   * can be picked. 0 means it is available from the start.
+   * Cash + research points the player must spend to unlock this tier.
+   * null means it's available from the start — no purchase needed.
    */
-  unlockRevenue: number;
+  unlockCost: UnlockCost | null;
 }
 
 export interface ComponentDef {

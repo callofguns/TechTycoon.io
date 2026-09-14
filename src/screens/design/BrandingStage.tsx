@@ -8,7 +8,7 @@ import { useGameStore } from '../../store/gameStore';
 /** Stage 2: name the phone and choose how it looks and feels. */
 export function BrandingStage() {
   const draft = useGameStore((s) => s.draft);
-  const lifetimeRevenue = useGameStore((s) => s.lifetimeRevenue);
+  const unlockedTierIndex = useGameStore((s) => s.unlockedTierIndex);
   const stepDraftPart = useGameStore((s) => s.stepDraftPart);
   const setDraftName = useGameStore((s) => s.setDraftName);
 
@@ -36,7 +36,7 @@ export function BrandingStage() {
           const index = draft.parts[id];
           const tier = def.tiers[index];
           const hasNext = index < def.tiers.length - 1;
-          const nextUnlocked = hasNext && isTierUnlocked(id, index + 1, lifetimeRevenue);
+          const nextUnlocked = hasNext && isTierUnlocked(id, index + 1, unlockedTierIndex);
 
           return (
             <StepperRow

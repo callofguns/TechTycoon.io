@@ -1,9 +1,9 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import { Pause, Play } from 'lucide-react';
+import { FlaskConical, Pause, Play } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 import { AnimatedNumber } from './AnimatedNumber';
 import { dateForDay } from '../game/calendar';
-import { formatDate, money } from '../lib/format';
+import { count, formatDate, money } from '../lib/format';
 import type { Speed } from '../types';
 
 const SPEEDS: { value: Speed; label: string }[] = [
@@ -20,6 +20,7 @@ const SPEEDS: { value: Speed; label: string }[] = [
 export function TopBar() {
   const day = useGameStore((s) => s.day);
   const cash = useGameStore((s) => s.cash);
+  const researchPoints = useGameStore((s) => s.researchPoints);
   const speed = useGameStore((s) => s.speed);
   const setSpeed = useGameStore((s) => s.setSpeed);
 
@@ -53,6 +54,10 @@ export function TopBar() {
               cash < 0 ? 'text-red-400' : 'text-white'
             }`}
           />
+          <div className="mt-0.5 flex items-center justify-end gap-1 text-accent-soft/70">
+            <FlaskConical size={10} strokeWidth={2.6} />
+            <AnimatedNumber value={researchPoints} format={count} className="tnum text-[11px] font-semibold" />
+          </div>
         </div>
       </div>
 
