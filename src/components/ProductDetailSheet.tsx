@@ -44,7 +44,7 @@ export function ProductDetailSheet() {
             exit={{ y: '100%' }}
             transition={{ type: 'spring', stiffness: 340, damping: 34 }}
             onClick={(event) => event.stopPropagation()}
-            className="no-scrollbar max-h-[86%] w-full overflow-y-auto rounded-t-[28px] border-t border-white/10 bg-ink-800 pb-[calc(env(safe-area-inset-bottom)+20px)]"
+            className="no-scrollbar max-h-[86%] w-full overflow-y-auto overscroll-contain rounded-t-[28px] border-t border-white/10 bg-ink-800 pb-[calc(env(safe-area-inset-bottom)+20px)]"
           >
             <div className="mx-auto mt-2.5 h-1 w-10 rounded-pill bg-white/15" />
 

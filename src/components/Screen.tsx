@@ -12,7 +12,7 @@ export function Screen({ children }: { children: ReactNode }) {
       animate={{ opacity: 1, y: 0, scale: 1 }}
       exit={{ opacity: 0, y: -10, scale: 0.99 }}
       transition={{ type: 'spring', stiffness: 320, damping: 30, mass: 0.7 }}
-      className="flex flex-col gap-3 px-4 pb-8 pt-4"
+      className="flex flex-col gap-3 px-4 pb-10 pt-6"
     >
       {children}
     </motion.div>

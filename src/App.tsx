@@ -30,7 +30,7 @@ export default function App() {
           entrance plays. (Screens are swapped directly rather than wrapped in
           AnimatePresence, which can stall if a nested animation is mid-flight.)
         */}
-        <main className="no-scrollbar relative flex-1 overflow-y-auto overflow-x-hidden">
+        <main className="no-scrollbar relative flex-1 overflow-y-auto overflow-x-hidden overscroll-none">
           {activeTab === 'home' && <HomeScreen key="home" />}
           {activeTab === 'design' && <DesignScreen key="design" />}
           {activeTab === 'market' && <MarketScreen key="market" />}
