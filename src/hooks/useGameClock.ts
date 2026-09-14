@@ -11,14 +11,19 @@ const SAMPLE_INTERVAL_MS = 100;
  *
  * Speed changes swap which interval is running, but the progress already
  * banked lives in the store, not here — so switching Pause/1x/2x/3x never
- * resets how far into the current day you already were.
+ * resets how far into the current day you already were. The clock also
+ * suspends itself entirely while the Design tab is open, so rivals and sales
+ * don't move against you mid-design — it picks back up at whatever speed
+ * you had once you leave.
  */
 export function useGameClock() {
   const speed = useGameStore((s) => s.speed);
+  const activeTab = useGameStore((s) => s.activeTab);
   const advanceClock = useGameStore((s) => s.advanceClock);
+  const pausedForDesign = activeTab === 'design';
 
   useEffect(() => {
-    if (speed === 0) return;
+    if (speed === 0 || pausedForDesign) return;
 
     // Reset fresh each time this effect (re)starts, so neither a paused
     // stretch nor the moment right before a speed change gets counted.
@@ -36,5 +41,5 @@ export function useGameClock() {
     }, SAMPLE_INTERVAL_MS);
 
     return () => window.clearInterval(interval);
-  }, [speed, advanceClock]);
+  }, [speed, pausedForDesign, advanceClock]);
 }

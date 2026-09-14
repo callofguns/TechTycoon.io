@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Cpu, DollarSign, Laptop, Lock, Monitor, Package, Palette, Smartphone } from 'lucide-react';
+import { Cpu, DollarSign, Laptop, Lock, Monitor, Package, Palette, Pause, Smartphone } from 'lucide-react';
 import { Screen } from '../components/Screen';
 import { HardwareStage } from './design/HardwareStage';
 import { BrandingStage } from './design/BrandingStage';
@@ -46,6 +46,12 @@ export function DesignScreen() {
 
   return (
     <Screen>
+      {/* The clock is suspended for as long as this tab is open — see useGameClock. */}
+      <div className="flex items-center gap-1.5 self-start rounded-pill bg-white/[0.05] px-2.5 py-1">
+        <Pause size={11} strokeWidth={2.6} fill="currentColor" className="text-white/40" />
+        <span className="text-[10.5px] font-semibold text-white/40">Clock paused while you design</span>
+      </div>
+
       {/* Product line picker — phones now, PCs later */}
       <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 pb-0.5">
         {PRODUCT_TYPES.map((type) => {
