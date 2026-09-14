@@ -3,11 +3,11 @@ import { motion } from 'framer-motion';
 import { ArrowDownLeft, ArrowUpRight, PiggyBank } from 'lucide-react';
 import { Screen, SectionTitle } from '../components/Screen';
 import { AnimatedNumber } from '../components/AnimatedNumber';
-import { money } from '../lib/format';
+import { count, money } from '../lib/format';
 import { BALANCE, dailySavingsRate } from '../game/economy';
-import { useGameStore } from '../store/gameStore';
+import { selectPlayerProducts, unitsToday, useGameStore } from '../store/gameStore';
 
-/** Cash, a simple savings account, and a summary of the last 7 days. */
+/** Cash, today's trading numbers, a simple savings account, and a 7-day summary. */
 export function FinanceScreen() {
   const cash = useGameStore((s) => s.cash);
   const savings = useGameStore((s) => s.savings);
@@ -15,9 +15,12 @@ export function FinanceScreen() {
   const ledger = useGameStore((s) => s.ledger);
   const deposit = useGameStore((s) => s.deposit);
   const withdraw = useGameStore((s) => s.withdraw);
+  const products = useGameStore(selectPlayerProducts);
 
   const [mode, setMode] = useState<'deposit' | 'withdraw'>('deposit');
 
+  const today = ledger.at(-1);
+  const unitsSoldToday = products.reduce((sum, p) => sum + unitsToday(p), 0);
   const week = ledger.slice(-7);
   const weekTotals = week.reduce(
     (totals, dayRow) => ({
@@ -41,6 +44,18 @@ export function FinanceScreen() {
 
   return (
     <Screen>
+      <SectionTitle>Today</SectionTitle>
+      <div className="grid grid-cols-3 gap-2">
+        <StatTile label="Units today" value={unitsSoldToday} format={count} />
+        <StatTile label="Revenue" value={today?.revenue ?? 0} format={money} />
+        <StatTile
+          label="Net profit"
+          value={today?.netProfit ?? 0}
+          format={money}
+          tone={(today?.netProfit ?? 0) >= 0 ? 'good' : 'bad'}
+        />
+      </div>
+
       <div className="card px-4 py-4">
         <div className="label-dim">Cash on hand</div>
         <AnimatedNumber
@@ -184,6 +199,32 @@ function AmountButton({
     >
       {label}
     </motion.button>
+  );
+}
+
+function StatTile({
+  label,
+  value,
+  format,
+  tone = 'neutral',
+}: {
+  label: string;
+  value: number;
+  format: (value: number) => string;
+  tone?: 'neutral' | 'good' | 'bad';
+}) {
+  const color =
+    tone === 'good' ? 'text-emerald-400' : tone === 'bad' ? 'text-red-400' : 'text-white';
+
+  return (
+    <div className="card px-3 py-2.5">
+      <div className="label-dim truncate">{label}</div>
+      <AnimatedNumber
+        value={value}
+        format={format}
+        className={`tnum mt-1.5 block text-[15px] font-bold leading-none ${color}`}
+      />
+    </div>
   );
 }
 

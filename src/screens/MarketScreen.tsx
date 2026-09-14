@@ -6,6 +6,7 @@ import { PriceTierBar } from '../components/PriceTierBar';
 import { count, money } from '../lib/format';
 import { priceTierShares } from '../game/economy';
 import { ownerName, unitsToday, useGameStore } from '../store/gameStore';
+import { useProductDetailStore } from '../store/productDetailStore';
 import type { Product } from '../types';
 
 /** Every phone on sale, yours and the competition's, side by side. */
@@ -84,12 +85,15 @@ function MarketRow({
 }) {
   const isPlayer = product.ownerId === 'player';
   const soldOut = isPlayer && product.unitsInStock <= 0;
+  const openDetail = useProductDetailStore((s) => s.open);
 
   return (
     <motion.div
       layout
+      whileTap={{ scale: 0.99 }}
       transition={{ type: 'spring', stiffness: 300, damping: 28 }}
-      className={`card px-3.5 py-3 ${isPlayer ? 'border-accent/25' : ''}`}
+      onClick={() => openDetail(product.id)}
+      className={`card cursor-pointer px-3.5 py-3 ${isPlayer ? 'border-accent/25' : ''}`}
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
@@ -135,7 +139,10 @@ function MarketRow({
           <motion.button
             type="button"
             aria-label="Discontinue"
-            onClick={onDiscontinue}
+            onClick={(event) => {
+              event.stopPropagation();
+              onDiscontinue();
+            }}
             whileTap={{ scale: 0.86 }}
             transition={{ type: 'spring', stiffness: 500, damping: 24 }}
             className="ml-1 flex h-8 w-8 items-center justify-center rounded-full border border-white/[0.07] bg-ink-600 text-white/40 active:bg-ink-500"

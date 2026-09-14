@@ -6,6 +6,7 @@ import { money, count } from '../lib/format';
 import { profitPerUnit } from '../game/economy';
 import { activeModifiers } from '../game/news';
 import { unitsToday, useGameStore } from '../store/gameStore';
+import { useProductDetailStore } from '../store/productDetailStore';
 import type { Product } from '../types';
 
 /** A card for one of the player's phones, with a mini sales chart and price controls. */
@@ -13,6 +14,7 @@ export function ProductCard({ product }: { product: Product }) {
   const news = useGameStore((s) => s.news);
   const day = useGameStore((s) => s.day);
   const setProductPrice = useGameStore((s) => s.setProductPrice);
+  const openDetail = useProductDetailStore((s) => s.open);
 
   const { costMult } = activeModifiers(news);
   const margin = profitPerUnit(product.price, product.unitCost, costMult);
@@ -26,8 +28,10 @@ export function ProductCard({ product }: { product: Product }) {
       layout
       initial={{ opacity: 0, y: 16, scale: 0.97 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
+      whileTap={{ scale: 0.99 }}
       transition={{ type: 'spring', stiffness: 300, damping: 26 }}
-      className="card overflow-hidden"
+      onClick={() => openDetail(product.id)}
+      className="card cursor-pointer overflow-hidden"
     >
       <div className="flex items-start justify-between gap-3 px-4 pt-3.5">
         <div className="min-w-0">
@@ -63,7 +67,7 @@ export function ProductCard({ product }: { product: Product }) {
       </div>
 
       <div className="mt-1 flex items-center justify-between gap-2 border-t border-white/[0.06] px-3 py-2.5">
-        <div className="flex items-center gap-1.5">
+        <div className="flex items-center gap-1.5" onClick={(event) => event.stopPropagation()}>
           <PriceNudge icon="minus" onPress={() => setProductPrice(product.id, product.price - 10)} />
           <div className="min-w-[64px] text-center">
             <div className="tnum text-[15px] font-bold leading-none text-white">

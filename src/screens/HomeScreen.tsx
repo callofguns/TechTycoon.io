@@ -4,32 +4,14 @@ import { Screen, SectionTitle } from '../components/Screen';
 import { NewsFeed } from '../components/NewsFeed';
 import { ProductCard } from '../components/ProductCard';
 import { PillButton } from '../components/PillButton';
-import { AnimatedNumber } from '../components/AnimatedNumber';
-import { count, money } from '../lib/format';
-import { selectPlayerProducts, unitsToday, useGameStore } from '../store/gameStore';
+import { selectPlayerProducts, useGameStore } from '../store/gameStore';
 
 export function HomeScreen() {
   const products = useGameStore(selectPlayerProducts);
-  const ledger = useGameStore((s) => s.ledger);
   const setTab = useGameStore((s) => s.setTab);
-
-  const today = ledger.at(-1);
-  const unitsSoldToday = products.reduce((sum, p) => sum + unitsToday(p), 0);
 
   return (
     <Screen>
-      {/* Today's headline numbers */}
-      <div className="grid grid-cols-3 gap-2">
-        <StatTile label="Units today" value={unitsSoldToday} format={count} />
-        <StatTile label="Revenue" value={today?.revenue ?? 0} format={money} />
-        <StatTile
-          label="Net profit"
-          value={today?.netProfit ?? 0}
-          format={money}
-          tone={(today?.netProfit ?? 0) >= 0 ? 'good' : 'bad'}
-        />
-      </div>
-
       <SectionTitle>Market news</SectionTitle>
       <NewsFeed />
 
@@ -71,31 +53,5 @@ export function HomeScreen() {
         </div>
       )}
     </Screen>
-  );
-}
-
-function StatTile({
-  label,
-  value,
-  format,
-  tone = 'neutral',
-}: {
-  label: string;
-  value: number;
-  format: (value: number) => string;
-  tone?: 'neutral' | 'good' | 'bad';
-}) {
-  const color =
-    tone === 'good' ? 'text-emerald-400' : tone === 'bad' ? 'text-red-400' : 'text-white';
-
-  return (
-    <div className="card px-3 py-2.5">
-      <div className="label-dim truncate">{label}</div>
-      <AnimatedNumber
-        value={value}
-        format={format}
-        className={`tnum mt-1.5 block text-[15px] font-bold leading-none ${color}`}
-      />
-    </div>
   );
 }

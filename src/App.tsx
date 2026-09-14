@@ -2,6 +2,8 @@ import { TopBar } from './components/TopBar';
 import { Toast } from './components/Toast';
 import { DayProgress } from './components/DayProgress';
 import { BottomNav } from './components/BottomNav';
+import { ProductDetailSheet } from './components/ProductDetailSheet';
+import { VersionTag } from './components/VersionTag';
 import { HomeScreen } from './screens/HomeScreen';
 import { DesignScreen } from './screens/DesignScreen';
 import { MarketScreen } from './screens/MarketScreen';
@@ -37,6 +39,8 @@ export default function App() {
         </main>
 
         <Toast />
+        <ProductDetailSheet />
+        <VersionTag />
         <BottomNav />
       </div>
     </div>
