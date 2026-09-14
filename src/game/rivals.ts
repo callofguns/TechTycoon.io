@@ -1,5 +1,5 @@
 import { COMPONENTS } from './components';
-import { computeQuality, computeUnitCost, fairPrice, clamp } from './economy';
+import { BALANCE, computeQuality, computeUnitCost, fairPrice, clamp } from './economy';
 import type { PartSelection, Product, Rival } from '../types';
 
 /**
@@ -68,6 +68,9 @@ export function createRivalProduct(
     unitCost,
     price,
     launchedOnDay: day,
+    // Rivals don't manage a production batch like the player does — they just
+    // always have stock.
+    unitsInStock: BALANCE.rivalStockUnits,
     unitsSoldTotal: 0,
     revenueTotal: 0,
     profitTotal: 0,

@@ -2,7 +2,8 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Pause, Play } from 'lucide-react';
 import { useGameStore } from '../store/gameStore';
 import { AnimatedNumber } from './AnimatedNumber';
-import { money } from '../lib/format';
+import { dateForDay } from '../game/calendar';
+import { formatDate, money } from '../lib/format';
 import type { Speed } from '../types';
 
 const SPEEDS: { value: Speed; label: string }[] = [
@@ -27,8 +28,7 @@ export function TopBar() {
       <div className="flex items-end justify-between">
         <div>
           <div className="label-dim">TechTycoon</div>
-          <div className="mt-1 flex items-baseline gap-1.5">
-            <span className="text-[13px] font-medium text-white/45">Day</span>
+          <div className="mt-1">
             <AnimatePresence mode="popLayout" initial={false}>
               <motion.span
                 key={day}
@@ -36,9 +36,9 @@ export function TopBar() {
                 animate={{ scale: 1, opacity: 1, y: 0 }}
                 exit={{ scale: 1.15, opacity: 0, y: -6 }}
                 transition={{ type: 'spring', stiffness: 420, damping: 18 }}
-                className="tnum text-[20px] font-bold leading-none text-white"
+                className="tnum block text-[17px] font-bold leading-none text-white"
               >
-                {day}
+                {formatDate(dateForDay(day))}
               </motion.span>
             </AnimatePresence>
           </div>

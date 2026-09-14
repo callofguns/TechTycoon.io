@@ -19,6 +19,7 @@ export function ProductCard({ product }: { product: Product }) {
   const today = unitsToday(product);
   const revenueToday = product.history.at(-1)?.revenue ?? 0;
   const age = day - product.launchedOnDay;
+  const soldOut = product.unitsInStock <= 0;
 
   return (
     <motion.div
@@ -35,6 +36,11 @@ export function ProductCard({ product }: { product: Product }) {
             <span className="rounded-pill bg-accent/15 px-2 py-0.5 text-[10px] font-bold text-accent-soft">
               Q{product.quality}
             </span>
+            {soldOut && (
+              <span className="rounded-pill bg-red-400/15 px-2 py-0.5 text-[10px] font-bold text-red-300">
+                SOLD OUT
+              </span>
+            )}
             <span className="text-[11px] text-white/35">
               {age === 0 ? 'Launched today' : `${age}d on sale`}
             </span>
@@ -48,6 +54,7 @@ export function ProductCard({ product }: { product: Product }) {
             format={count}
             className="tnum block text-[19px] font-bold leading-tight text-white"
           />
+          <div className="tnum mt-0.5 text-[10px] text-white/35">{count(product.unitsInStock)} in stock</div>
         </div>
       </div>
 
@@ -77,6 +84,13 @@ export function ProductCard({ product }: { product: Product }) {
         <div className="text-right">
           <div className="label-dim">Revenue today</div>
           <div className="tnum text-[13px] font-semibold text-white/80">{money(revenueToday)}</div>
+          <div
+            className={`tnum mt-0.5 text-[10px] font-semibold ${
+              product.profitTotal >= 0 ? 'text-emerald-400/80' : 'text-red-400/80'
+            }`}
+          >
+            {money(product.profitTotal)} total
+          </div>
         </div>
       </div>
     </motion.div>

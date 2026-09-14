@@ -13,6 +13,20 @@ export const BALANCE = {
   /** Cash the player starts with. */
   startingCash: 50_000,
 
+  /** One in-game day lasts this long in real milliseconds at 1x speed. */
+  dayLengthMs: 5_000,
+
+  /** Units a fresh product draft starts out planning to manufacture. */
+  defaultBatchSize: 200,
+  minBatchSize: 10,
+  maxBatchSize: 20_000,
+
+  /**
+   * Rivals don't manage inventory — this just needs to be big enough that a
+   * rival's stock never realistically runs out before their next refresh.
+   */
+  rivalStockUnits: 999_999_999,
+
   /**
    * How many phones the whole market could buy in one day, at best.
    * Raise this to make every company sell more (and money arrive faster).
@@ -52,9 +66,6 @@ export const BALANCE = {
 
   /** Fixed running costs per day (office, staff, servers). */
   dailyOverhead: 400,
-
-  /** Chance per day that a news event fires. */
-  newsChancePerDay: 0.1,
 
   /** Savings account yearly rate, compounded daily on the Finance screen. */
   savingsApy: 0.04,
@@ -153,7 +164,13 @@ export interface DailySale {
   productId: string;
   units: number;
   revenue: number;
-  /** Revenue minus manufacturing cost for the units sold that day. */
+  /**
+   * Cash profit from this day's sales. Manufacturing cost is paid upfront
+   * for the whole batch when a product launches (see launchProduct in the
+   * store), so selling from stock you've already paid to build is pure
+   * revenue — this is only ever less than revenue if we add per-sale costs
+   * again later.
+   */
   profit: number;
 }
 
@@ -162,52 +179,56 @@ export interface DailySale {
  * THE MAIN SALES FORMULA — tweak this to change how the game plays.
  * ─────────────────────────────────────────────────────────────────────────────
  *
- * 1. Score every product on the market with `valueScore` (quality vs price),
- *    then fade it a little for age with `noveltyFactor`.
+ * 1. Score every product that still has stock with `valueScore` (quality vs
+ *    price), then fade it a little for age with `noveltyFactor`. A sold-out
+ *    product is left out entirely, so its would-be buyers go to whoever's
+ *    still selling instead of being wasted.
  * 2. Add all the scores up. The bigger the total, the more of the market
  *    actually decides to buy something today (`marketPull`).
  * 3. Split today's buyers between products in proportion to their scores,
- *    with a little random wobble so no two days look identical.
+ *    with a little random wobble so no two days look identical — capped at
+ *    however many units that product actually has left in stock.
  *
  * @param products      every product on sale (yours and the rivals')
  * @param currentDay    the day being simulated, used for product age
  * @param demandMult    news-event multiplier on overall demand (1 = normal)
- * @param costMult      news-event multiplier on manufacturing costs (1 = normal)
  * @param random        injectable RNG, handy if you ever want repeatable tests
  */
 export function simulateDay(
   products: Product[],
   currentDay: number,
   demandMult: number,
-  costMult: number,
   random: () => number = Math.random,
 ): DailySale[] {
-  if (products.length === 0) return [];
+  const sellable = products.filter((p) => p.unitsInStock > 0);
 
-  const scores = products.map((p) => {
+  const scores = sellable.map((p) => {
     const age = currentDay - p.launchedOnDay;
     return valueScore(p.quality, p.price) * noveltyFactor(age);
   });
-
   const totalScore = scores.reduce((sum, s) => sum + s, 0);
-  if (totalScore <= 0) {
-    return products.map((p) => ({ productId: p.id, units: 0, revenue: 0, profit: 0 }));
+
+  const salesById = new Map<string, DailySale>();
+
+  if (totalScore > 0) {
+    // How much of the potential market buys anything at all today (0-1).
+    const marketPull = totalScore / (totalScore + BALANCE.marketSaturation);
+    const buyersToday = BALANCE.marketSizePerDay * marketPull * demandMult;
+
+    sellable.forEach((product, i) => {
+      const share = scores[i] / totalScore;
+      const wobble = 1 + (random() * 2 - 1) * BALANCE.dailyNoise;
+      const wanted = Math.max(0, Math.round(buyersToday * share * wobble));
+      const units = Math.min(wanted, product.unitsInStock);
+      const revenue = units * product.price;
+
+      salesById.set(product.id, { productId: product.id, units, revenue, profit: revenue });
+    });
   }
 
-  // How much of the potential market buys anything at all today (0-1).
-  const marketPull = totalScore / (totalScore + BALANCE.marketSaturation);
-  const buyersToday = BALANCE.marketSizePerDay * marketPull * demandMult;
-
-  return products.map((product, i) => {
-    const share = scores[i] / totalScore;
-    const wobble = 1 + (random() * 2 - 1) * BALANCE.dailyNoise;
-    const units = Math.max(0, Math.round(buyersToday * share * wobble));
-
-    const revenue = units * product.price;
-    const cost = units * product.unitCost * costMult;
-
-    return { productId: product.id, units, revenue, profit: revenue - cost };
-  });
+  return products.map(
+    (p) => salesById.get(p.id) ?? { productId: p.id, units: 0, revenue: 0, profit: 0 },
+  );
 }
 
 /** Profit on a single unit right now, after any cost-inflating news event. */

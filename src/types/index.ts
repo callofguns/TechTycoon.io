@@ -55,8 +55,11 @@ export interface Product {
   unitCost: number;
   price: number;
   launchedOnDay: number;
+  /** Units left to sell from the batch that was manufactured at launch. */
+  unitsInStock: number;
   unitsSoldTotal: number;
   revenueTotal: number;
+  /** Lifetime profit: all revenue so far minus the upfront tooling + manufacturing cost. */
   profitTotal: number;
   /** Rolling window of recent days (most recent last). */
   history: DayPoint[];
@@ -91,6 +94,8 @@ export interface ProductDraft {
   name: string;
   parts: PartSelection;
   price: number;
+  /** How many units to build before launching, chosen on the Production stage. */
+  unitsToManufacture: number;
   /** True once the player has typed a name, so we stop auto-suggesting one. */
   nameTouched: boolean;
 }

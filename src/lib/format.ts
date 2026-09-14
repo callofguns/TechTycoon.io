@@ -25,3 +25,18 @@ export function count(value: number): string {
 export function dayLabel(day: number): string {
   return `Day ${day}`;
 }
+
+/** A Date → "Jun 29, 2007". Forced to UTC so it matches dateForDay regardless of the player's timezone. */
+export function formatDate(date: Date): string {
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: 'numeric',
+    timeZone: 'UTC',
+  });
+}
+
+/** A Date → "Jun 29" — compact version for tight spaces like news tags. */
+export function formatDateShort(date: Date): string {
+  return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric', timeZone: 'UTC' });
+}

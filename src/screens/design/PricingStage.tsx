@@ -1,7 +1,5 @@
-import { Rocket } from 'lucide-react';
 import { PriceTierBar } from '../../components/PriceTierBar';
 import { PriceStepper } from '../../components/PriceStepper';
-import { PillButton } from '../../components/PillButton';
 import { AnimatedNumber } from '../../components/AnimatedNumber';
 import { SectionTitle } from '../../components/Screen';
 import { money } from '../../lib/format';
@@ -12,21 +10,15 @@ import {
   noveltyFactor,
   priceTierShares,
   profitPerUnit,
-  toolingCost,
   valueScore,
 } from '../../game/economy';
 import { activeModifiers } from '../../game/news';
 import { selectRivalProducts, useGameStore } from '../../store/gameStore';
 
-interface Props {
-  onLaunch: () => void;
-}
-
-/** Stage 3: see where the market sits, set a price, and launch. */
-export function PricingStage({ onLaunch }: Props) {
+/** Stage 3: see where the market sits and set a price. Quantity comes next. */
+export function PricingStage() {
   const draft = useGameStore((s) => s.draft);
   const day = useGameStore((s) => s.day);
-  const cash = useGameStore((s) => s.cash);
   const news = useGameStore((s) => s.news);
   const products = useGameStore((s) => s.products);
   const rivalProducts = useGameStore(selectRivalProducts);
@@ -34,12 +26,10 @@ export function PricingStage({ onLaunch }: Props) {
 
   const quality = computeQuality(draft.parts);
   const unitCost = computeUnitCost(draft.parts);
-  const tooling = toolingCost(unitCost);
   const { costMult } = activeModifiers(news);
   const margin = profitPerUnit(draft.price, unitCost, costMult);
 
   const shares = priceTierShares(products, day);
-  const canAfford = cash >= tooling;
 
   // How our phone stacks up against the best thing already on sale.
   const myScore = valueScore(quality, draft.price) * noveltyFactor(0);
@@ -91,13 +81,7 @@ export function PricingStage({ onLaunch }: Props) {
         <Row label="Phone" value={draft.name.trim() || 'Unnamed'} />
         <Row label="Quality" value={`Q${quality}`} />
         <Row label="Build cost" value={`${money(unitCost)} / unit`} />
-        <Row label="Tooling (one-off)" value={money(tooling)} tone={canAfford ? 'neutral' : 'bad'} />
       </div>
-
-      <PillButton onClick={onLaunch} disabled={!canAfford || draft.name.trim().length === 0}>
-        <Rocket size={17} strokeWidth={2.4} />
-        {canAfford ? 'Launch phone' : `Need ${money(tooling - cash)} more`}
-      </PillButton>
     </div>
   );
 }
@@ -124,23 +108,11 @@ function Readout({
   );
 }
 
-function Row({
-  label,
-  value,
-  tone = 'neutral',
-}: {
-  label: string;
-  value: string;
-  tone?: 'neutral' | 'bad';
-}) {
+function Row({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-center justify-between py-1 text-[12.5px]">
       <span className="text-white/40">{label}</span>
-      <span
-        className={`tnum truncate pl-3 font-semibold ${tone === 'bad' ? 'text-red-400' : 'text-white/85'}`}
-      >
-        {value}
-      </span>
+      <span className="tnum truncate pl-3 font-semibold text-white/85">{value}</span>
     </div>
   );
 }

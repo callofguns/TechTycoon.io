@@ -6,22 +6,22 @@ import { PillButton } from '../components/PillButton';
 import { money } from '../lib/format';
 import { COMPONENTS } from '../game/components';
 import { BALANCE } from '../game/economy';
-import { DAY_LENGTH_MS } from '../hooks/useGameClock';
 import { useGameStore } from '../store/gameStore';
 
 const HOW_TO_PLAY = [
-  'Design a phone on the Design tab: pick parts, name it, then set a price.',
-  'Launching costs a one-off tooling fee, so keep some cash spare.',
-  `Each in-game day takes ${DAY_LENGTH_MS / 1000} seconds at 1x. Use 2x or 3x to speed things up.`,
+  'Design a phone on the Design tab: pick parts, a look, a price, then how many to build.',
+  'Manufacturing a batch plus tooling is paid upfront, so keep some cash spare.',
+  `Each in-game day takes ${BALANCE.dayLengthMs / 1000} seconds at 1x. Use 2x or 3x to speed things up.`,
   'Phones sell better when quality is high for the price. Rivals are doing the same thing.',
-  'Phones lose appeal as they age — replace them with newer models over time.',
+  'News only happens on real dates from tech history — the game starts the day the first iPhone shipped.',
+  'Once a batch sells out, that phone stops selling until you launch a new one.',
 ];
 
 const COMING_LATER = [
   'Laptops and desktop PCs',
   'Hiring staff and R&D',
   'Marketing campaigns',
-  'Factories and production limits',
+  'Restocking a batch instead of launching a whole new phone',
 ];
 
 export function MoreScreen() {

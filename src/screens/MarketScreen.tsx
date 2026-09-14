@@ -83,6 +83,7 @@ function MarketRow({
   onDiscontinue?: () => void;
 }) {
   const isPlayer = product.ownerId === 'player';
+  const soldOut = isPlayer && product.unitsInStock <= 0;
 
   return (
     <motion.div
@@ -97,6 +98,11 @@ function MarketRow({
             {isPlayer && (
               <span className="rounded-pill bg-accent/15 px-1.5 py-0.5 text-[9.5px] font-bold text-accent-soft">
                 YOURS
+              </span>
+            )}
+            {soldOut && (
+              <span className="rounded-pill bg-red-400/15 px-1.5 py-0.5 text-[9.5px] font-bold text-red-300">
+                SOLD OUT
               </span>
             )}
           </div>
@@ -115,7 +121,15 @@ function MarketRow({
         <Stat label="Price" value={money(product.price)} />
         <Stat label="Quality" value={`Q${product.quality}`} />
         <Stat label="Today" value={count(unitsToday(product))} />
-        <Stat label="Total" value={count(product.unitsSoldTotal)} />
+        {isPlayer ? (
+          <Stat
+            label="Profit"
+            value={money(product.profitTotal)}
+            tone={product.profitTotal >= 0 ? 'good' : 'bad'}
+          />
+        ) : (
+          <Stat label="Total" value={count(product.unitsSoldTotal)} />
+        )}
 
         {onDiscontinue && (
           <motion.button
@@ -134,11 +148,21 @@ function MarketRow({
   );
 }
 
-function Stat({ label, value }: { label: string; value: string }) {
+function Stat({
+  label,
+  value,
+  tone = 'neutral',
+}: {
+  label: string;
+  value: string;
+  tone?: 'neutral' | 'good' | 'bad';
+}) {
+  const color =
+    tone === 'good' ? 'text-emerald-400' : tone === 'bad' ? 'text-red-400' : 'text-white/85';
   return (
     <div className="min-w-0 flex-1">
       <div className="text-[9.5px] font-semibold uppercase tracking-wider text-white/30">{label}</div>
-      <div className="tnum mt-0.5 text-[13px] font-bold text-white/85">{value}</div>
+      <div className={`tnum mt-0.5 text-[13px] font-bold ${color}`}>{value}</div>
     </div>
   );
 }

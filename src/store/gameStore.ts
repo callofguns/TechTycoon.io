@@ -10,7 +10,7 @@ import {
   suggestedPrice,
   toolingCost,
 } from '../game/economy';
-import { activeModifiers, rollNewsEvent } from '../game/news';
+import { activeModifiers, historicalEventsForDay } from '../game/news';
 import { RIVALS, createInitialRivalProducts, runRivalTurn } from '../game/rivals';
 import { defaultParts, getComponent, isTierUnlocked } from '../game/components';
 import type {
@@ -38,6 +38,12 @@ export interface LedgerDay {
 interface GameState {
   // ── World ────────────────────────────────────────────────────────────────
   day: number;
+  /**
+   * Milliseconds of game-time banked toward the current day (0 to
+   * BALANCE.dayLengthMs). Lives in the store — not a component — so that
+   * changing speed only changes how fast it fills, never resets it.
+   */
+  dayProgressMs: number;
   cash: number;
   savings: number;
   /** Total money ever taken in by the player. Drives component unlocks. */
@@ -56,11 +62,14 @@ interface GameState {
   setTab: (tab: TabId) => void;
   setSpeed: (speed: Speed) => void;
   tick: () => void;
+  /** Called by the game clock with however many real ms just passed. */
+  advanceClock: (realDeltaMs: number) => void;
 
   stepDraftPart: (componentId: ComponentId, direction: 1 | -1) => void;
   setDraftName: (name: string) => void;
   stepDraftPrice: (delta: number) => void;
   setDraftPrice: (price: number) => void;
+  stepDraftUnits: (delta: number) => void;
   resetDraft: () => void;
   launchProduct: () => { ok: boolean; message: string };
 
@@ -84,6 +93,7 @@ function freshDraft(): ProductDraft {
     name: `${idea} 1`,
     parts,
     price: suggestedPrice(quality, unitCost),
+    unitsToManufacture: BALANCE.defaultBatchSize,
     nameTouched: false,
   };
 }
@@ -91,13 +101,16 @@ function freshDraft(): ProductDraft {
 function initialState() {
   return {
     day: 1,
+    dayProgressMs: 0,
     cash: BALANCE.startingCash,
     savings: 0,
     lifetimeRevenue: 0,
     speed: 1 as Speed,
     products: createInitialRivalProducts(),
     rivals: RIVALS.map((r) => ({ ...r })),
-    news: [] as NewsEvent[],
+    // Day 1 is seeded directly (rather than discovered by a tick) so the
+    // very first headline — the iPhone launching — isn't missed.
+    news: historicalEventsForDay(1),
     ledger: [] as LedgerDay[],
     activeTab: 'home' as TabId,
     draft: freshDraft(),
@@ -127,12 +140,13 @@ export const useGameStore = create<GameState>()(
             .map((n) => ({ ...n, daysRemaining: Math.max(0, n.daysRemaining - 1) }))
             .slice(0, 8);
 
-          // 2. Maybe a new headline.
-          if (Math.random() < BALANCE.newsChancePerDay) {
-            news = [rollNewsEvent(day), ...news].slice(0, 8);
+          // 2. Any real historical events landing on today's date.
+          const todaysEvents = historicalEventsForDay(day);
+          if (todaysEvents.length > 0) {
+            news = [...todaysEvents, ...news].slice(0, 8);
           }
 
-          const { costMult, demandMult } = activeModifiers(news);
+          const { demandMult } = activeModifiers(news);
 
           // 3. Rivals act (price drift / new generation).
           const rivalTurn = runRivalTurn(state.rivals, state.products, day);
@@ -153,7 +167,7 @@ export const useGameStore = create<GameState>()(
           }
 
           // 4. Sell phones.
-          const sales = simulateDay(products, day, demandMult, costMult);
+          const sales = simulateDay(products, day, demandMult);
           const salesById = new Map(sales.map((s) => [s.productId, s]));
 
           let playerRevenue = 0;
@@ -180,6 +194,7 @@ export const useGameStore = create<GameState>()(
             return {
               ...product,
               history,
+              unitsInStock: Math.max(0, product.unitsInStock - sale.units),
               unitsSoldTotal: product.unitsSoldTotal + sale.units,
               revenueTotal: product.revenueTotal + sale.revenue,
               profitTotal: product.profitTotal + sale.profit,
@@ -213,6 +228,30 @@ export const useGameStore = create<GameState>()(
             ledger: [...state.ledger, ledgerEntry].slice(-60),
           };
         }),
+
+      /**
+       * Feeds real elapsed time into the day counter. Speed only changes how
+       * fast dayProgressMs fills from here on — it's never reset, so switching
+       * between Pause/1x/2x/3x never throws away part of a day you'd already
+       * banked. Capped to a handful of days per call so a backgrounded tab
+       * coming back to life doesn't suddenly simulate a huge time skip.
+       */
+      advanceClock: (realDeltaMs) => {
+        const state = get();
+        if (state.speed === 0) return;
+
+        let progressMs = state.dayProgressMs + realDeltaMs * state.speed;
+        let daysToProcess = 0;
+        while (progressMs >= BALANCE.dayLengthMs) {
+          progressMs -= BALANCE.dayLengthMs;
+          daysToProcess += 1;
+        }
+
+        for (let i = 0; i < Math.min(daysToProcess, 30); i++) {
+          get().tick();
+        }
+        set({ dayProgressMs: progressMs });
+      },
 
       stepDraftPart: (componentId, direction) =>
         set((state) => {
@@ -250,6 +289,18 @@ export const useGameStore = create<GameState>()(
       setDraftPrice: (price) =>
         set((state) => ({ draft: { ...state.draft, price: clamp(Math.round(price), 1, 9999) } })),
 
+      stepDraftUnits: (delta) =>
+        set((state) => ({
+          draft: {
+            ...state.draft,
+            unitsToManufacture: clamp(
+              state.draft.unitsToManufacture + delta,
+              BALANCE.minBatchSize,
+              BALANCE.maxBatchSize,
+            ),
+          },
+        })),
+
       resetDraft: () => set({ draft: freshDraft() }),
 
       launchProduct: () => {
@@ -265,10 +316,16 @@ export const useGameStore = create<GameState>()(
         const unitCost = computeUnitCost(draft.parts);
         const tooling = toolingCost(unitCost);
 
-        if (state.cash < tooling) {
+        // Manufacturing the batch is charged at today's cost — if a news event
+        // has parts more expensive right now, building this batch costs more.
+        const { costMult } = activeModifiers(state.news);
+        const manufacturingCost = Math.round(unitCost * costMult * draft.unitsToManufacture);
+        const totalUpfront = tooling + manufacturingCost;
+
+        if (state.cash < totalUpfront) {
           return {
             ok: false,
-            message: `You need $${tooling.toLocaleString()} in cash for factory tooling.`,
+            message: `You need $${totalUpfront.toLocaleString()} in cash to tool up and build this batch.`,
           };
         }
 
@@ -281,19 +338,25 @@ export const useGameStore = create<GameState>()(
           unitCost,
           price: draft.price,
           launchedOnDay: state.day,
+          unitsInStock: draft.unitsToManufacture,
           unitsSoldTotal: 0,
           revenueTotal: 0,
-          profitTotal: 0,
+          // Starts negative: the tooling + manufacturing spend hasn't been
+          // earned back yet. Each day's sale revenue closes the gap.
+          profitTotal: -totalUpfront,
           history: [],
         };
 
         set({
           products: [...state.products, product],
-          cash: state.cash - tooling,
+          cash: state.cash - totalUpfront,
           draft: freshDraft(),
         });
 
-        return { ok: true, message: `${name} is on sale. Tooling cost $${tooling.toLocaleString()}.` };
+        return {
+          ok: true,
+          message: `${name} is on sale. Spent $${totalUpfront.toLocaleString()} on ${draft.unitsToManufacture.toLocaleString()} units.`,
+        };
       },
 
       setProductPrice: (productId, price) =>

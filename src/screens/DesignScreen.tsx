@@ -1,19 +1,21 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Cpu, DollarSign, Laptop, Lock, Monitor, Palette, Smartphone } from 'lucide-react';
+import { Cpu, DollarSign, Laptop, Lock, Monitor, Package, Palette, Smartphone } from 'lucide-react';
 import { Screen } from '../components/Screen';
 import { HardwareStage } from './design/HardwareStage';
 import { BrandingStage } from './design/BrandingStage';
 import { PricingStage } from './design/PricingStage';
+import { ProductionStage } from './design/ProductionStage';
 import { useGameStore } from '../store/gameStore';
 import { useToastStore } from '../store/toastStore';
 
-type StageId = 'hardware' | 'branding' | 'pricing';
+type StageId = 'hardware' | 'branding' | 'pricing' | 'production';
 
 const STAGES: { id: StageId; label: string; icon: typeof Cpu }[] = [
   { id: 'hardware', label: 'Hardware', icon: Cpu },
   { id: 'branding', label: 'Design', icon: Palette },
   { id: 'pricing', label: 'Pricing', icon: DollarSign },
+  { id: 'production', label: 'Production', icon: Package },
 ];
 
 /** Product lines. Only phones are playable in v1 — the rest are locked stubs. */
@@ -134,11 +136,12 @@ export function DesignScreen() {
       >
         {stage === 'hardware' && <HardwareStage />}
         {stage === 'branding' && <BrandingStage />}
-        {stage === 'pricing' && <PricingStage onLaunch={handleLaunch} />}
+        {stage === 'pricing' && <PricingStage />}
+        {stage === 'production' && <ProductionStage onLaunch={handleLaunch} />}
       </motion.div>
 
       {/* Move to the next stage */}
-      {stage !== 'pricing' && (
+      {stage !== 'production' && (
         <motion.button
           type="button"
           onClick={() => setStage(STAGES[stageIndex + 1].id)}
