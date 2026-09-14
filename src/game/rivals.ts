@@ -1,5 +1,6 @@
-import { COMPONENTS } from './components';
+import { COMPONENTS, highestDateAvailableTierIndex } from './components';
 import { BALANCE, computeQuality, computeUnitCost, fairPrice, clamp } from './economy';
+import { dateForDay } from './calendar';
 import type { PartSelection, Product, Rival } from '../types';
 
 /**
@@ -40,12 +41,16 @@ function randomInt(max: number, random: () => number): number {
 /**
  * Pick parts around a target tier index. `spread` lets some parts land one
  * step above or below the target so rival phones aren't all identical.
+ * Rivals don't go through the player's buy-to-unlock flow, but they're
+ * still capped at whatever tier actually exists yet on `currentDate` — no
+ * fair reason a 2007 rival should be shipping a 2020 display.
  */
-function pickParts(targetTier: number, random: () => number): PartSelection {
+function pickParts(targetTier: number, random: () => number, currentDate: Date): PartSelection {
   const parts = {} as PartSelection;
   for (const def of COMPONENTS) {
     const drift = randomInt(3, random) - 1; // -1, 0 or +1
-    parts[def.id] = clamp(targetTier + drift, 0, def.tiers.length - 1);
+    const wanted = clamp(targetTier + drift, 0, def.tiers.length - 1);
+    parts[def.id] = Math.min(wanted, highestDateAvailableTierIndex(def.id, currentDate));
   }
   return parts;
 }
@@ -60,7 +65,7 @@ export function createRivalProduct(
   random: () => number = Math.random,
 ): Product {
   const targetTier = clamp(Math.floor((rival.generation + 1) / 2), 0, 3);
-  const parts = pickParts(targetTier, random);
+  const parts = pickParts(targetTier, random, dateForDay(day));
   const quality = computeQuality(parts);
   const unitCost = computeUnitCost(parts);
 

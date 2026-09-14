@@ -3,8 +3,17 @@
  * Everything the game knows about lives in these shapes.
  */
 
-/** The five parts that make up a phone. */
-export type ComponentId = 'cpu' | 'screen' | 'battery' | 'camera' | 'build';
+/** The nine parts that make up a phone. */
+export type ComponentId =
+  | 'design'
+  | 'display'
+  | 'cpu'
+  | 'gpu'
+  | 'ram'
+  | 'storage'
+  | 'battery'
+  | 'camera'
+  | 'misc';
 
 /** What it costs to research and unlock a component tier. */
 export interface UnlockCost {
@@ -46,7 +55,7 @@ export interface ComponentDef {
   tiers: ComponentTier[];
 }
 
-/** A tier index for every component, e.g. { cpu: 2, screen: 1, ... }. */
+/** A tier index for every component, e.g. { cpu: 2, display: 1, ... }. */
 export type PartSelection = Record<ComponentId, number>;
 
 /** One day of sales for a product, used for the mini sparkline charts. */
