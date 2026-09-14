@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { BookOpen, FlaskConical, RotateCcw, Sparkles, Unlock } from 'lucide-react';
+import { BookOpen, Clock, FlaskConical, RotateCcw, Sparkles, Unlock } from 'lucide-react';
 import { Screen, SectionTitle } from '../components/Screen';
 import { PillButton } from '../components/PillButton';
-import { money, count } from '../lib/format';
-import { COMPONENTS } from '../game/components';
+import { money, count, formatDate } from '../lib/format';
+import { COMPONENTS, isTierDateReady } from '../game/components';
 import { BALANCE } from '../game/economy';
+import { dateForDay, parseISODate } from '../game/calendar';
 import { useGameStore } from '../store/gameStore';
 import { useToastStore } from '../store/toastStore';
 import type { ComponentDef, ComponentId, ComponentTier } from '../types';
@@ -16,7 +17,7 @@ const HOW_TO_PLAY = [
   'Phones sell better when quality is high for the price. Rivals are doing the same thing.',
   'News only happens on real dates from tech history — the game starts the day the first iPhone shipped.',
   'Once a batch sells out, that phone stops selling until you launch a new one.',
-  'Research points trickle in every day — spend them with cash below to unlock better parts.',
+  "Research points trickle in every day — spend them with cash below to unlock better parts, once that tech has actually been invented on your game's timeline.",
 ];
 
 const COMING_LATER = [
@@ -27,6 +28,7 @@ const COMING_LATER = [
 ];
 
 export function MoreScreen() {
+  const day = useGameStore((s) => s.day);
   const cash = useGameStore((s) => s.cash);
   const researchPoints = useGameStore((s) => s.researchPoints);
   const unlockedTierIndex = useGameStore((s) => s.unlockedTierIndex);
@@ -88,7 +90,9 @@ export function MoreScreen() {
         <div className="flex flex-col gap-2">
           {nextUnlocks.map(({ def, tier }) => {
             const cost = tier.unlockCost;
+            const dateReady = isTierDateReady(tier, dateForDay(day));
             const canAfford = !cost || (cash >= cost.cash && researchPoints >= cost.research);
+            const canBuy = dateReady && canAfford;
 
             return (
               <div key={def.id} className="card px-4 py-3">
@@ -101,7 +105,9 @@ export function MoreScreen() {
                   </div>
 
                   {cost && (
-                    <div className="flex shrink-0 items-center gap-2.5 text-right">
+                    <div
+                      className={`flex shrink-0 items-center gap-2.5 text-right ${dateReady ? '' : 'opacity-40'}`}
+                    >
                       <div>
                         <div
                           className={`tnum text-[12px] font-bold ${cash >= cost.cash ? 'text-white/80' : 'text-red-400'}`}
@@ -121,13 +127,20 @@ export function MoreScreen() {
                   )}
                 </div>
 
+                {!dateReady && tier.availableFrom && (
+                  <div className="mt-2.5 flex items-center gap-1.5 rounded-xl border border-amber-400/20 bg-amber-400/10 px-2.5 py-1.5 text-[11px] font-semibold text-amber-300">
+                    <Clock size={12} strokeWidth={2.4} />
+                    Not invented yet — arrives {formatDate(parseISODate(tier.availableFrom))}
+                  </div>
+                )}
+
                 <PillButton
                   className="mt-2.5 !h-10 !text-[12.5px]"
-                  disabled={!canAfford}
+                  disabled={!canBuy}
                   onClick={() => handleBuy(def.id)}
                 >
                   <Unlock size={14} strokeWidth={2.4} />
-                  Unlock
+                  {dateReady ? 'Unlock' : 'Not available yet'}
                 </PillButton>
               </div>
             );

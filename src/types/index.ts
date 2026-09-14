@@ -24,6 +24,13 @@ export interface ComponentTier {
    * null means it's available from the start — no purchase needed.
    */
   unlockCost: UnlockCost | null;
+  /**
+   * "YYYY-MM-DD" — the real date this tech actually existed. The tier can't
+   * be bought before the in-game calendar reaches it, however much cash and
+   * research are sitting there — no buying a 2024 battery in 2010. Omitted
+   * for tiers with no unlockCost, which are already period-correct at launch.
+   */
+  availableFrom?: string;
 }
 
 export interface ComponentDef {
