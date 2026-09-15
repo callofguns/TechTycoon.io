@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, ChevronLeft, Clock, FlaskConical, Lock, Unlock } from 'lucide-react';
+import { CheckCircle2, ChevronLeft, FlaskConical, Lock, Unlock } from 'lucide-react';
 import { Screen } from '../components/Screen';
 import { PillButton } from '../components/PillButton';
-import { money, count, formatDate } from '../lib/format';
+import { money, count } from '../lib/format';
 import { COMPONENTS, isTierDateReady } from '../game/components';
 import { COMPONENT_COLORS, COMPONENT_ICONS } from '../lib/componentColors';
-import { dateForDay, parseISODate } from '../game/calendar';
+import { dateForDay } from '../game/calendar';
 import { useGameStore } from '../store/gameStore';
 import { useToastStore } from '../store/toastStore';
 import type { ComponentDef, ComponentId, ComponentTier } from '../types';
@@ -163,13 +163,6 @@ export function ResearchScreen({ onBack }: Props) {
               </div>
             </div>
           </div>
-
-          {!dateReady && tier.availableFrom && (
-            <div className="mt-3 flex items-center gap-1.5 rounded-xl border border-amber-400/20 bg-amber-400/10 px-2.5 py-1.5 text-[11px] font-semibold text-amber-300">
-              <Clock size={12} strokeWidth={2.4} />
-              Not invented yet — arrives {formatDate(parseISODate(tier.availableFrom))}
-            </div>
-          )}
         </motion.div>
       )}
 
