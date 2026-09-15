@@ -4,4 +4,4 @@
  * update; per Dhruv's standing instruction, always ask what the new number
  * should be rather than picking one.
  */
-export const APP_VERSION = 'v0.4.0';
+export const APP_VERSION = 'v0.4.0-beta';
