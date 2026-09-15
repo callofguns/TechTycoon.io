@@ -19,6 +19,8 @@ interface CategoryInfo {
   def: ComponentDef;
   /** The next tier this component could buy, or null if fully upgraded. */
   tier: ComponentTier | null;
+  /** The level you'd be buying up to — 1-indexed, so it starts at "Level 1". */
+  nextLevel: number;
   dateReady: boolean;
 }
 
@@ -41,7 +43,12 @@ export function ResearchScreen({ onBack }: Props) {
   const categories: CategoryInfo[] = COMPONENTS.map((def) => {
     const nextIndex = (unlockedTierIndex[def.id] ?? 0) + 1;
     const tier = def.tiers[nextIndex] ?? null;
-    return { def, tier, dateReady: tier ? isTierDateReady(tier, currentDate) : true };
+    return {
+      def,
+      tier,
+      nextLevel: nextIndex + 1, // tier index is 0-based; shown level starts at 1
+      dateReady: tier ? isTierDateReady(tier, currentDate) : true,
+    };
   });
 
   // Land on the first category that still has something to research.
@@ -50,7 +57,7 @@ export function ResearchScreen({ onBack }: Props) {
   );
 
   const active = categories.find((c) => c.def.id === selected) ?? categories[0];
-  const { def, tier, dateReady } = active;
+  const { def, tier, nextLevel, dateReady } = active;
   const colors = COMPONENT_COLORS[def.id];
   const cost = tier?.unlockCost ?? null;
   const canAfford = !cost || (cash >= cost.cash && researchPoints >= cost.research);
@@ -148,9 +155,11 @@ export function ResearchScreen({ onBack }: Props) {
               })()}
             </div>
             <div className="min-w-0">
-              <div className="truncate text-[15px] font-bold text-white">{tier.name}</div>
+              <div className="truncate text-[15px] font-bold text-white">
+                {def.label} · Level {nextLevel}
+              </div>
               <div className="mt-0.5 text-[11px] text-white/35">
-                {def.label} · Q{tier.quality}
+                {tier.name} · Q{tier.quality}
               </div>
             </div>
           </div>
