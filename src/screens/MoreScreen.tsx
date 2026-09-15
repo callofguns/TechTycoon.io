@@ -1,14 +1,14 @@
 import { useState } from 'react';
-import { BookOpen, Clock, FlaskConical, RotateCcw, Sparkles, Unlock } from 'lucide-react';
+import { motion } from 'framer-motion';
+import { BookOpen, ChevronRight, FlaskConical, RotateCcw, Sparkles } from 'lucide-react';
 import { Screen, SectionTitle } from '../components/Screen';
 import { PillButton } from '../components/PillButton';
-import { money, count, formatDate } from '../lib/format';
+import { ResearchScreen } from './ResearchScreen';
+import { money, count } from '../lib/format';
 import { COMPONENTS, isTierDateReady } from '../game/components';
 import { BALANCE } from '../game/economy';
-import { dateForDay, parseISODate } from '../game/calendar';
+import { dateForDay } from '../game/calendar';
 import { useGameStore } from '../store/gameStore';
-import { useToastStore } from '../store/toastStore';
-import type { ComponentDef, ComponentId, ComponentTier } from '../types';
 
 const HOW_TO_PLAY = [
   'Design a phone on the Design tab: pick parts, a look, a price, then how many to build.',
@@ -17,7 +17,7 @@ const HOW_TO_PLAY = [
   'Phones sell better when quality is high for the price. Rivals are doing the same thing.',
   'News only happens on real dates from tech history — the game starts the day the first iPhone shipped.',
   'Once a batch sells out, that phone stops selling until you launch a new one.',
-  "Research points trickle in every day — spend them with cash below to unlock better parts, once that tech has actually been invented on your game's timeline.",
+  "Research points trickle in every day — spend them with cash in the Research menu to unlock better parts, once that tech has actually been invented on your game's timeline.",
 ];
 
 const COMING_LATER = [
@@ -27,29 +27,33 @@ const COMING_LATER = [
   'Restocking a batch instead of launching a whole new phone',
 ];
 
+type View = 'main' | 'research';
+
 export function MoreScreen() {
+  const [view, setView] = useState<View>('main');
   const day = useGameStore((s) => s.day);
   const cash = useGameStore((s) => s.cash);
   const researchPoints = useGameStore((s) => s.researchPoints);
   const unlockedTierIndex = useGameStore((s) => s.unlockedTierIndex);
-  const buyUnlock = useGameStore((s) => s.buyUnlock);
   const resetGame = useGameStore((s) => s.resetGame);
   const setTab = useGameStore((s) => s.setTab);
-  const showToast = useToastStore((s) => s.show);
   const [confirmingReset, setConfirmingReset] = useState(false);
 
-  // The one next tier each component could buy right now — you can't skip
-  // ahead, so anything further out isn't shown until this one is bought.
-  const nextUnlocks: { def: ComponentDef; tier: ComponentTier }[] = COMPONENTS.map((def) => {
+  if (view === 'research') {
+    return <ResearchScreen onBack={() => setView('main')} />;
+  }
+
+  // How many parts could be bought right this moment — cash, research, and
+  // the calendar all lined up — so the entry card can hint at it.
+  const readyToBuyCount = COMPONENTS.filter((def) => {
     const nextIndex = (unlockedTierIndex[def.id] ?? 0) + 1;
     const tier = def.tiers[nextIndex];
-    return tier ? { def, tier } : null;
-  }).filter((entry): entry is { def: ComponentDef; tier: ComponentTier } => entry !== null);
-
-  function handleBuy(componentId: ComponentId) {
-    const result = buyUnlock(componentId);
-    showToast(result.message);
-  }
+    if (!tier) return false;
+    const cost = tier.unlockCost;
+    const dateReady = isTierDateReady(tier, dateForDay(day));
+    const canAfford = !cost || (cash >= cost.cash && researchPoints >= cost.research);
+    return dateReady && canAfford;
+  }).length;
 
   return (
     <Screen>
@@ -71,82 +75,31 @@ export function MoreScreen() {
         </ol>
       </div>
 
-      <SectionTitle
-        right={
-          <span className="flex items-center gap-1 text-[11px] font-semibold text-cyan-400">
-            <FlaskConical size={12} strokeWidth={2.4} />
-            {count(researchPoints)} research
-          </span>
-        }
+      <SectionTitle>Research</SectionTitle>
+      <motion.button
+        type="button"
+        onClick={() => setView('research')}
+        whileTap={{ scale: 0.98 }}
+        transition={{ type: 'spring', stiffness: 500, damping: 26 }}
+        className="card flex w-full items-center gap-3 px-4 py-3.5 text-left"
       >
-        Research & unlocks
-      </SectionTitle>
-      {nextUnlocks.length === 0 ? (
-        <div className="card flex items-center gap-3 px-4 py-3.5">
-          <Unlock size={16} className="shrink-0 text-emerald-400" />
-          <p className="text-[12.5px] text-white/50">Every part is fully upgraded. Nice work.</p>
+        <div className="relative flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-cyan-400/10 text-cyan-400">
+          <FlaskConical size={19} />
+          {readyToBuyCount > 0 && (
+            <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-emerald-400 text-[9px] font-bold text-ink-900">
+              {readyToBuyCount}
+            </span>
+          )}
         </div>
-      ) : (
-        <div className="flex flex-col gap-2">
-          {nextUnlocks.map(({ def, tier }) => {
-            const cost = tier.unlockCost;
-            const dateReady = isTierDateReady(tier, dateForDay(day));
-            const canAfford = !cost || (cash >= cost.cash && researchPoints >= cost.research);
-            const canBuy = dateReady && canAfford;
-
-            return (
-              <div key={def.id} className="card px-4 py-3">
-                <div className="flex items-center justify-between gap-2">
-                  <div className="min-w-0">
-                    <div className="truncate text-[13px] font-bold text-white">{tier.name}</div>
-                    <div className="mt-0.5 text-[10.5px] text-white/35">
-                      {def.label} · Q{tier.quality}
-                    </div>
-                  </div>
-
-                  {cost && (
-                    <div
-                      className={`flex shrink-0 items-center gap-2.5 text-right ${dateReady ? '' : 'opacity-40'}`}
-                    >
-                      <div>
-                        <div
-                          className={`tnum text-[12px] font-bold ${cash >= cost.cash ? 'text-white/80' : 'text-red-400'}`}
-                        >
-                          {money(cost.cash)}
-                        </div>
-                        <div
-                          className={`tnum flex items-center justify-end gap-0.5 text-[10.5px] font-semibold ${
-                            researchPoints >= cost.research ? 'text-cyan-400/70' : 'text-red-400/80'
-                          }`}
-                        >
-                          <FlaskConical size={9} strokeWidth={2.6} />
-                          {count(cost.research)}
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </div>
-
-                {!dateReady && tier.availableFrom && (
-                  <div className="mt-2.5 flex items-center gap-1.5 rounded-xl border border-amber-400/20 bg-amber-400/10 px-2.5 py-1.5 text-[11px] font-semibold text-amber-300">
-                    <Clock size={12} strokeWidth={2.4} />
-                    Not invented yet — arrives {formatDate(parseISODate(tier.availableFrom))}
-                  </div>
-                )}
-
-                <PillButton
-                  className="mt-2.5 !h-10 !text-[12.5px]"
-                  disabled={!canBuy}
-                  onClick={() => handleBuy(def.id)}
-                >
-                  <Unlock size={14} strokeWidth={2.4} />
-                  {dateReady ? 'Unlock' : 'Not available yet'}
-                </PillButton>
-              </div>
-            );
-          })}
+        <div className="min-w-0 flex-1">
+          <div className="text-[14px] font-bold text-white">Unlock better parts</div>
+          <div className="mt-0.5 flex items-center gap-1 text-[11.5px] text-white/40">
+            <FlaskConical size={11} strokeWidth={2.4} className="text-cyan-400/70" />
+            {count(researchPoints)} research points saved up
+          </div>
         </div>
-      )}
+        <ChevronRight size={18} strokeWidth={2.4} className="shrink-0 text-white/25" />
+      </motion.button>
 
       <SectionTitle>Coming later</SectionTitle>
       <div className="card px-4 py-3">
