@@ -11,7 +11,7 @@ import type { ComponentId, PartSelection, Product } from '../types';
  */
 export const BALANCE = {
   /** Cash the player starts with. */
-  startingCash: 50_000,
+  startingCash: 10_000_000,
 
   /** One in-game day lasts this long in real milliseconds at 1x speed. */
   dayLengthMs: 5_000,
