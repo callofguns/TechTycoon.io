@@ -1,10 +1,10 @@
 import { Rocket } from 'lucide-react';
-import { QuantityStepper } from '../../components/QuantityStepper';
+import { UnitsSlider } from '../../components/UnitsSlider';
 import { PillButton } from '../../components/PillButton';
 import { AnimatedNumber } from '../../components/AnimatedNumber';
 import { SectionTitle } from '../../components/Screen';
 import { money } from '../../lib/format';
-import { computeQuality, computeUnitCost, profitPerUnit, toolingCost } from '../../game/economy';
+import { BALANCE, computeQuality, computeUnitCost, profitPerUnit, toolingCost } from '../../game/economy';
 import { activeModifiers } from '../../game/news';
 import { useGameStore } from '../../store/gameStore';
 
@@ -21,7 +21,7 @@ export function ProductionStage({ onLaunch }: Props) {
   const draft = useGameStore((s) => s.draft);
   const cash = useGameStore((s) => s.cash);
   const news = useGameStore((s) => s.news);
-  const stepDraftUnits = useGameStore((s) => s.stepDraftUnits);
+  const setDraftUnits = useGameStore((s) => s.setDraftUnits);
 
   const quality = computeQuality(draft.parts);
   const unitCost = computeUnitCost(draft.parts);
@@ -34,12 +34,19 @@ export function ProductionStage({ onLaunch }: Props) {
   const projectedProfit = marginPerUnit * draft.unitsToManufacture - tooling;
   const canAfford = cash >= totalUpfront;
 
+  // However many units you can actually afford right now — the slider's
+  // range grows and shrinks with your cash instead of stopping at a fixed cap.
+  const affordableUnits = Math.max(
+    BALANCE.minBatchSize,
+    Math.floor((cash - tooling) / (unitCost * costMult || 1)),
+  );
+
   return (
     <div className="flex flex-col gap-3">
       <SectionTitle>Units to manufacture</SectionTitle>
-      <div className="card px-3 py-3">
-        <QuantityStepper units={draft.unitsToManufacture} onStep={stepDraftUnits} />
-        <p className="mt-2.5 px-0.5 text-[11.5px] leading-snug text-white/40">
+      <div className="card px-4 py-4">
+        <UnitsSlider value={draft.unitsToManufacture} min={BALANCE.minBatchSize} max={affordableUnits} onChange={setDraftUnits} />
+        <p className="mt-3 px-0.5 text-[11.5px] leading-snug text-white/40">
           This is your starting inventory. Once every unit is sold, {draft.name.trim() || 'this phone'}{' '}
           stops selling until you launch a new one.
         </p>

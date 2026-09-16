@@ -10,8 +10,9 @@ interface Props {
 
 /**
  * The shared big number control: -big/-mid/-small on the left, the current
- * value in the middle, +small/+mid/+big on the right. PriceStepper and
- * QuantityStepper are both thin wrappers around this.
+ * value in the middle, +small/+mid/+big on the right. PriceStepper wraps
+ * this; the batch-size control uses UnitsSlider instead, since its range is
+ * too wide for fixed steps to make sense.
  */
 export function NumberStepper({ value, onStep, steps, format }: Props) {
   return (

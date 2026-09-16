@@ -81,7 +81,7 @@ interface GameState {
   setDraftName: (name: string) => void;
   stepDraftPrice: (delta: number) => void;
   setDraftPrice: (price: number) => void;
-  stepDraftUnits: (delta: number) => void;
+  setDraftUnits: (units: number) => void;
   resetDraft: () => void;
   launchProduct: () => { ok: boolean; message: string };
 
@@ -306,15 +306,11 @@ export const useGameStore = create<GameState>()(
       setDraftPrice: (price) =>
         set((state) => ({ draft: { ...state.draft, price: clamp(Math.round(price), 1, 9999) } })),
 
-      stepDraftUnits: (delta) =>
+      setDraftUnits: (units) =>
         set((state) => ({
           draft: {
             ...state.draft,
-            unitsToManufacture: clamp(
-              state.draft.unitsToManufacture + delta,
-              BALANCE.minBatchSize,
-              BALANCE.maxBatchSize,
-            ),
+            unitsToManufacture: Math.max(BALANCE.minBatchSize, Math.round(units)),
           },
         })),
 

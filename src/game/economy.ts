@@ -19,7 +19,6 @@ export const BALANCE = {
   /** Units a fresh product draft starts out planning to manufacture. */
   defaultBatchSize: 200,
   minBatchSize: 10,
-  maxBatchSize: 20_000,
 
   /**
    * Rivals don't manage inventory — this just needs to be big enough that a

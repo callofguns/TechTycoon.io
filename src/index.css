@@ -45,3 +45,40 @@
   -ms-overflow-style: none;
   scrollbar-width: none;
 }
+
+/* Custom look for the batch-size range slider — native styling varies too
+   much across browsers to leave as default. */
+.slider {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 100%;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+  outline: none;
+}
+.slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #5b7fff;
+  box-shadow: 0 4px 14px -4px rgba(91, 127, 255, 0.75);
+  cursor: pointer;
+  border: none;
+}
+.slider::-moz-range-thumb {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  background: #5b7fff;
+  box-shadow: 0 4px 14px -4px rgba(91, 127, 255, 0.75);
+  cursor: pointer;
+  border: none;
+}
+.slider::-moz-range-track {
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.08);
+}
