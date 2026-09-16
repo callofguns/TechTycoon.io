@@ -85,9 +85,6 @@ export function ResearchScreen({ onBack }: Props) {
 
       <div className="px-0.5">
         <h1 className="text-[22px] font-bold leading-tight text-white">Research</h1>
-        <p className="mt-1 text-[12.5px] leading-snug text-white/40">
-          Pick a category, then spend cash and research together to buy its next upgrade.
-        </p>
       </div>
 
       {/* Category strip */}
@@ -176,7 +173,6 @@ export function ResearchScreen({ onBack }: Props) {
             </div>
           </div>
           <div>
-            <div className="label-dim">Research</div>
             <div
               className={`tnum mt-1 flex items-center gap-1 text-[15px] font-bold ${
                 cost && researchPoints < cost.research ? 'text-red-400' : 'text-cyan-400'
