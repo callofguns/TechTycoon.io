@@ -166,13 +166,13 @@ export function ResearchScreen({ onBack }: Props) {
         </motion.div>
       )}
 
-      {/* Shared totals + confirm */}
+      {/* Cost of the selected upgrade + confirm */}
       <div className="card flex items-center gap-3 px-4 py-3.5">
         <div className="flex flex-1 gap-4">
           <div>
-            <div className="label-dim">Cash</div>
+            <div className="label-dim">Cost</div>
             <div className={`tnum mt-1 text-[15px] font-bold ${cost && cash < cost.cash ? 'text-red-400' : 'text-white'}`}>
-              {money(cash)}
+              {cost ? money(cost.cash) : '—'}
             </div>
           </div>
           <div>
@@ -183,7 +183,7 @@ export function ResearchScreen({ onBack }: Props) {
               }`}
             >
               <FlaskConical size={13} strokeWidth={2.6} />
-              {count(researchPoints)}
+              {cost ? count(cost.research) : '—'}
             </div>
           </div>
         </div>
@@ -197,12 +197,6 @@ export function ResearchScreen({ onBack }: Props) {
           Research
         </PillButton>
       </div>
-
-      {tier && cost && (
-        <p className="px-1 text-center text-[11px] text-white/30">
-          Costs {money(cost.cash)} and {count(cost.research)} research
-        </p>
-      )}
     </Screen>
   );
 }
