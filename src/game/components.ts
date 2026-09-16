@@ -1,5 +1,4 @@
-import type { ComponentDef, ComponentId, ComponentTier, PartSelection } from '../types';
-import { parseISODate } from './calendar';
+import type { ComponentDef, ComponentId, PartSelection } from '../types';
 
 /**
  * The parts catalogue.
@@ -12,8 +11,7 @@ import { parseISODate } from './calendar';
  * CPU shows "2.8GHz", not "Performance A6". `unlockCost` gates the best two
  * tiers of every part behind an R&D purchase (see buyUnlock in the store) —
  * cash AND research points, both spent at once. `null` means it's available
- * from the start. `availableFrom` ties that same tier to the real date the
- * tech existed — see isTierDateReady below.
+ * from the start.
  */
 export const COMPONENTS: ComponentDef[] = [
   {
@@ -29,14 +27,12 @@ export const COMPONENTS: ComponentDef[] = [
         cost: 104,
         quality: 76,
         unlockCost: { cash: 100_000, research: 110 },
-        availableFrom: '2020-02-11', // Galaxy S20 — 120Hz goes mainstream on a flagship
       },
       {
         name: '144Hz',
         cost: 176,
         quality: 96,
         unlockCost: { cash: 900_000, research: 650 },
-        availableFrom: '2021-01-29', // Galaxy S21 Ultra — first adaptive LTPO panel
       },
     ],
   },
@@ -53,14 +49,12 @@ export const COMPONENTS: ComponentDef[] = [
         cost: 118,
         quality: 72,
         unlockCost: { cash: 100_000, research: 110 },
-        availableFrom: '2013-09-20', // iPhone 5s — the first 64-bit phone chip
       },
       {
         name: '3.4GHz',
         cost: 210,
         quality: 95,
         unlockCost: { cash: 900_000, research: 650 },
-        availableFrom: '2019-09-20', // iPhone 11 — 7nm A13 Bionic
       },
     ],
   },
@@ -77,14 +71,12 @@ export const COMPONENTS: ComponentDef[] = [
         cost: 95,
         quality: 75,
         unlockCost: { cash: 45_000, research: 55 },
-        availableFrom: '2017-09-22', // multi-core mobile GPUs become the norm
       },
       {
         name: '16-core',
         cost: 175,
         quality: 96,
         unlockCost: { cash: 350_000, research: 320 },
-        availableFrom: '2022-09-16', // console-class mobile graphics arrive
       },
     ],
   },
@@ -101,14 +93,12 @@ export const COMPONENTS: ComponentDef[] = [
         cost: 78,
         quality: 74,
         unlockCost: { cash: 28_000, research: 35 },
-        availableFrom: '2018-10-30', // OnePlus 6T — 8GB becomes a real flagship spec
       },
       {
         name: '16GB',
         cost: 145,
         quality: 97,
         unlockCost: { cash: 200_000, research: 200 },
-        availableFrom: '2023-02-01', // 16GB gaming-flagship Android phones arrive
       },
     ],
   },
@@ -125,14 +115,12 @@ export const COMPONENTS: ComponentDef[] = [
         cost: 60,
         quality: 76,
         unlockCost: { cash: 18_000, research: 25 },
-        availableFrom: '2016-09-16', // iPhone 7 — the first 256GB iPhone
       },
       {
         name: '1TB',
         cost: 110,
         quality: 98,
         unlockCost: { cash: 120_000, research: 130 },
-        availableFrom: '2021-09-24', // iPhone 13 Pro — the first 1TB iPhone
       },
     ],
   },
@@ -149,14 +137,12 @@ export const COMPONENTS: ComponentDef[] = [
         cost: 66,
         quality: 82,
         unlockCost: { cash: 45_000, research: 55 },
-        availableFrom: '2019-09-19', // Mate 30 Pro — big cell + real fast charging
       },
       {
         name: '6000mAh',
         cost: 112,
         quality: 98,
         unlockCost: { cash: 350_000, research: 320 },
-        availableFrom: '2024-01-11', // Honor Magic6 Pro — silicon-carbon anode cell
       },
     ],
   },
@@ -173,14 +159,12 @@ export const COMPONENTS: ComponentDef[] = [
         cost: 112,
         quality: 78,
         unlockCost: { cash: 70_000, research: 80 },
-        availableFrom: '2019-08-28', // Redmi Note 8 Pro — first 64MP phone camera
       },
       {
         name: '200MP',
         cost: 195,
         quality: 97,
         unlockCost: { cash: 600_000, research: 480 },
-        availableFrom: '2023-02-17', // Galaxy S23 Ultra — 200MP sensor + periscope zoom
       },
     ],
   },
@@ -197,14 +181,12 @@ export const COMPONENTS: ComponentDef[] = [
         cost: 52,
         quality: 80,
         unlockCost: { cash: 12_000, research: 20 },
-        availableFrom: '2010-06-24', // iPhone 4 — glass front and back, steel band
       },
       {
         name: 'Titanium',
         cost: 96,
         quality: 99,
         unlockCost: { cash: 70_000, research: 90 },
-        availableFrom: '2023-09-22', // iPhone 15 Pro — titanium frame
       },
     ],
   },
@@ -223,14 +205,12 @@ export const COMPONENTS: ComponentDef[] = [
         cost: 35,
         quality: 70,
         unlockCost: { cash: 8_000, research: 15 },
-        availableFrom: '2013-09-10', // iPhone 5s — Touch ID lands as 4G LTE goes mainstream
       },
       {
         name: '5G · Triple cam · Face ID · WiFi 6',
         cost: 80,
         quality: 95,
         unlockCost: { cash: 40_000, research: 60 },
-        availableFrom: '2020-10-23', // iPhone 12 — first 5G iPhone, rest already common by now
       },
     ],
   },
@@ -304,23 +284,4 @@ export function isTierUnlocked(
   unlockedTierIndex: Record<ComponentId, number>,
 ): boolean {
   return tierIndex <= (unlockedTierIndex[componentId] ?? 0);
-}
-
-/** True once the in-game calendar has actually reached this tier's real-world debut. */
-export function isTierDateReady(tier: ComponentTier, currentDate: Date): boolean {
-  if (!tier.availableFrom) return true;
-  return currentDate.getTime() >= parseISODate(tier.availableFrom).getTime();
-}
-
-/**
- * The best tier of a component that actually exists yet on the current date —
- * used to keep rivals period-appropriate too (see rivals.ts), since they pick
- * parts directly rather than going through the player's buy-to-unlock flow.
- */
-export function highestDateAvailableTierIndex(componentId: ComponentId, currentDate: Date): number {
-  const tiers = getComponent(componentId).tiers;
-  for (let i = tiers.length - 1; i >= 0; i--) {
-    if (isTierDateReady(tiers[i], currentDate)) return i;
-  }
-  return 0;
 }

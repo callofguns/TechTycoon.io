@@ -1,12 +1,11 @@
 import { useState } from 'react';
 import { motion } from 'framer-motion';
-import { CheckCircle2, ChevronLeft, FlaskConical, Lock, Unlock } from 'lucide-react';
+import { CheckCircle2, ChevronLeft, FlaskConical, Unlock } from 'lucide-react';
 import { Screen } from '../components/Screen';
 import { PillButton } from '../components/PillButton';
 import { money, count } from '../lib/format';
-import { COMPONENTS, isTierDateReady } from '../game/components';
+import { COMPONENTS } from '../game/components';
 import { COMPONENT_COLORS, COMPONENT_ICONS } from '../lib/componentColors';
-import { dateForDay } from '../game/calendar';
 import { useGameStore } from '../store/gameStore';
 import { useToastStore } from '../store/toastStore';
 import type { ComponentDef, ComponentId, ComponentTier } from '../types';
@@ -21,7 +20,6 @@ interface CategoryInfo {
   tier: ComponentTier | null;
   /** The level you'd be buying up to — 1-indexed, so it starts at "Level 1". */
   nextLevel: number;
-  dateReady: boolean;
 }
 
 /**
@@ -31,14 +29,11 @@ interface CategoryInfo {
  * at the bottom rather than a buy button per card.
  */
 export function ResearchScreen({ onBack }: Props) {
-  const day = useGameStore((s) => s.day);
   const cash = useGameStore((s) => s.cash);
   const researchPoints = useGameStore((s) => s.researchPoints);
   const unlockedTierIndex = useGameStore((s) => s.unlockedTierIndex);
   const buyUnlock = useGameStore((s) => s.buyUnlock);
   const showToast = useToastStore((s) => s.show);
-
-  const currentDate = dateForDay(day);
 
   const categories: CategoryInfo[] = COMPONENTS.map((def) => {
     const nextIndex = (unlockedTierIndex[def.id] ?? 0) + 1;
@@ -47,7 +42,6 @@ export function ResearchScreen({ onBack }: Props) {
       def,
       tier,
       nextLevel: nextIndex + 1, // tier index is 0-based; shown level starts at 1
-      dateReady: tier ? isTierDateReady(tier, currentDate) : true,
     };
   });
 
@@ -57,11 +51,11 @@ export function ResearchScreen({ onBack }: Props) {
   );
 
   const active = categories.find((c) => c.def.id === selected) ?? categories[0];
-  const { def, tier, nextLevel, dateReady } = active;
+  const { def, tier, nextLevel } = active;
   const colors = COMPONENT_COLORS[def.id];
   const cost = tier?.unlockCost ?? null;
   const canAfford = !cost || (cash >= cost.cash && researchPoints >= cost.research);
-  const canBuy = !!tier && dateReady && canAfford;
+  const canBuy = !!tier && canAfford;
 
   function handleResearch() {
     const result = buyUnlock(selected);
@@ -89,12 +83,11 @@ export function ResearchScreen({ onBack }: Props) {
 
       {/* Category strip */}
       <div className="no-scrollbar -mx-1 flex gap-2.5 overflow-x-auto px-1 pb-1">
-        {categories.map(({ def: catDef, tier: catTier, dateReady: catDateReady }) => {
+        {categories.map(({ def: catDef, tier: catTier }) => {
           const Icon = COMPONENT_ICONS[catDef.id];
           const catColors = COMPONENT_COLORS[catDef.id];
           const isSelected = catDef.id === selected;
           const maxed = !catTier;
-          const locked = !maxed && !catDateReady;
 
           return (
             <motion.button
@@ -117,11 +110,6 @@ export function ResearchScreen({ onBack }: Props) {
                   size={13}
                   className="absolute -right-1.5 -top-1.5 rounded-full bg-ink-800 text-emerald-400"
                 />
-              )}
-              {locked && (
-                <div className="absolute -right-1.5 -top-1.5 flex h-4 w-4 items-center justify-center rounded-full bg-ink-800">
-                  <Lock size={9} strokeWidth={2.6} className="text-amber-300" />
-                </div>
               )}
             </motion.button>
           );

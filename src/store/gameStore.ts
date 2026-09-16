@@ -12,15 +12,7 @@ import {
 } from '../game/economy';
 import { activeModifiers, historicalEventsForDay } from '../game/news';
 import { RIVALS, createInitialRivalProducts, runRivalTurn } from '../game/rivals';
-import {
-  defaultParts,
-  defaultUnlockedTierIndex,
-  getComponent,
-  isTierDateReady,
-  isTierUnlocked,
-} from '../game/components';
-import { dateForDay, parseISODate } from '../game/calendar';
-import { formatDate } from '../lib/format';
+import { defaultParts, defaultUnlockedTierIndex, getComponent, isTierUnlocked } from '../game/components';
 import type {
   ComponentId,
   NewsEvent,
@@ -392,13 +384,6 @@ export const useGameStore = create<GameState>()(
 
         if (!tier) {
           return { ok: false, message: `${def.label} is already fully upgraded.` };
-        }
-
-        if (tier.availableFrom && !isTierDateReady(tier, dateForDay(state.day))) {
-          return {
-            ok: false,
-            message: `${tier.name} doesn't exist yet — it won't be invented until ${formatDate(parseISODate(tier.availableFrom))}.`,
-          };
         }
 
         const cost = tier.unlockCost;
